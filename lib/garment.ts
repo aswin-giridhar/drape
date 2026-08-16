@@ -106,20 +106,34 @@ export async function extractGarmentColour(src: string): Promise<GarmentColour> 
   };
   const bgLab = rgbToLab(bg);
 
-  const points: Rgb[] = [];
-  // Sample the central column band, where a garment sits in a product or
-  // worn photo, and skip the outer margins entirely.
-  for (let y = Math.floor(SAMPLE_H * 0.12); y < SAMPLE_H * 0.88; y++) {
-    for (let x = Math.floor(SAMPLE_W * 0.18); x < SAMPLE_W * 0.82; x++) {
-      const p = at(x, y);
-      if (data[(y * SAMPLE_W + x) * 4 + 3] < 200) continue; // transparent
-      if (isSkin(p.r, p.g, p.b)) continue;
-      if (deltaE2000(rgbToLab(p), bgLab) < 10) continue; // background
-      points.push(p);
+  /**
+   * Sample the central band, where a garment sits in a product or worn photo.
+   *
+   * `bgTolerance` of 0 disables background removal entirely. We try with it and
+   * fall back without it, because a garment photographed against a background of
+   * a similar colour would otherwise have every pixel filtered away - which is a
+   * failure of our heuristic, not an unreadable image.
+   */
+  const sample = (bgTolerance: number): Rgb[] => {
+    const pts: Rgb[] = [];
+    for (let y = Math.floor(SAMPLE_H * 0.12); y < SAMPLE_H * 0.88; y++) {
+      for (let x = Math.floor(SAMPLE_W * 0.18); x < SAMPLE_W * 0.82; x++) {
+        const p = at(x, y);
+        if (data[(y * SAMPLE_W + x) * 4 + 3] < 200) continue; // transparent
+        if (isSkin(p.r, p.g, p.b)) continue;
+        if (bgTolerance > 0 && deltaE2000(rgbToLab(p), bgLab) < bgTolerance) continue;
+        pts.push(p);
+      }
     }
-  }
+    return pts;
+  };
 
-  if (points.length < 150) {
+  const MIN_POINTS = 150;
+  let points = sample(10);
+  if (points.length < MIN_POINTS) points = sample(4); // looser background match
+  if (points.length < MIN_POINTS) points = sample(0); // keep everything but skin
+
+  if (points.length < MIN_POINTS) {
     throw new Error(
       "We couldn't pick out a garment in that image. Try a photo where the item fills more of the frame.",
     );
