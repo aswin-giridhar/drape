@@ -21,3 +21,5 @@ dist/
 .playwright-mcp/
 .vercel
 .env*
+*.tsbuildinfo
+next-env.d.ts

@@ -6,7 +6,21 @@ actually suit them, then hang real garments on their body to prove it.
 Built for the YouCam API Skin AI & Apparel VTO Hackathon, in the **Skin AI + Apparel VTO**
 combined track.
 
-**Live:** https://drape-five-delta.vercel.app
+**Live:** https://drape-five-delta.vercel.app — no sign-in, and the three completed
+sittings need no API units, so you can explore the whole product immediately.
+
+---
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![The hero](shots/01-home.png) | ![Your colour card](shots/02-card.png) |
+| **The sitting.** The interface is deliberately achromatic — the only colour on screen is the user's own measured palette. | **Your colour card.** Measured skin, eye and lip hex; ITA depth; undertone; contrast. Monospace means instrument-read. |
+| ![The house rail](shots/04-rail.png) | ![Hung on the sitter](shots/05-rail-tryon.png) |
+| **The house rail.** One garment, fourteen colours, ranked. Only the colour changes, so the ranking is entirely about the person. | **Hung on the sitter.** The top-ranked colour rendered on her actual body by YouCam Apparel VTO. |
+| ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
+| **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** The YouCam garment catalogue ranked against the palette, with skipped pieces reported rather than hidden. |
 
 ---
 
