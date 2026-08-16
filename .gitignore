@@ -1,0 +1,21 @@
+# secrets — NEVER commit
+.env
+.env.local
+.env*.local
+*.pem
+
+# deps / build
+node_modules/
+.next/
+out/
+dist/
+.vercel/
+.turbo/
+
+# runtime artifacts
+.cache/
+*.log
+.DS_Store
+
+# tooling artifacts
+.playwright-mcp/
