@@ -54,6 +54,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Paper grain.
+ *
+ * A flat fill reads as unfinished rather than restrained - it is the single
+ * thing that separates a disciplined minimal page from an empty one. The noise
+ * is fully achromatic, so it adds tooth without tinting the swatches, which is
+ * the one thing this interface must never do.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.42;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+/* Content sits above the grain. */
+.shell,
+.topbar,
+.sectionnav {
+  position: relative;
+  z-index: 2;
+}
+
 img {
   max-width: 100%;
   display: block;
@@ -388,6 +415,7 @@ img {
   border: 1px solid var(--hairline);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 26px -16px rgba(0, 0, 0, 0.16);
 }
 
 .frame > img {
@@ -445,8 +473,8 @@ img {
 
 .sitting {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: clamp(1.5rem, 5vw, 4rem);
+  grid-template-columns: minmax(0, 6.5fr) minmax(0, 5.5fr);
+  gap: clamp(1.5rem, 5vw, 4.5rem);
   align-items: start;
 }
 
@@ -461,6 +489,7 @@ img {
   background: var(--mount);
   padding: clamp(0.5rem, 1.2vw, 0.9rem);
   border: 1px solid var(--hairline);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 40px -18px rgba(0, 0, 0, 0.18);
 }
 
 .drape-plate {
@@ -624,10 +653,13 @@ img {
   top: 0;
   height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(1.5rem, 5vw, 4rem);
+  /* Asymmetric: the photograph earns more than half. A 50/50 split is the
+     reflex, and it makes both halves feel like columns rather than a subject
+     with an annotation beside it. */
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 4.5rem);
   align-items: center;
-  padding: 4vh 0;
+  padding: 2vh 0;
 }
 
 @media (max-width: 860px) {
@@ -644,15 +676,25 @@ img {
   background: var(--mount);
   border: 1px solid var(--hairline);
   padding: clamp(0.4rem, 1vw, 0.8rem);
-  height: min(80vh, 660px);
+  /* The frame hugs the photograph. A fixed-width plate letterboxes a 3:4
+     portrait and gives back the size we just gained. */
+  height: 94vh;
+  max-height: 960px;
+  aspect-ratio: 3 / 4;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 14px 44px -18px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 860px) {
   .scrub-plate {
-    height: min(52vh, 420px);
+    height: min(54vh, 440px);
+    margin-right: auto;
   }
 }
 
@@ -663,7 +705,7 @@ img {
   inset: clamp(0.4rem, 1vw, 0.8rem);
   width: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
   height: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
-  object-fit: contain;
+  object-fit: cover;
   opacity: 0;
   transition: opacity 120ms linear;
 }
