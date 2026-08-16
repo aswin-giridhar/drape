@@ -21,8 +21,8 @@ sittings need no API units, so you can explore the whole product immediately.
 | **The draping scrub — scroll begins.** The sitter is pinned at her worst colour: charcoal, 0.5, avoid. | **…and ends on her best.** Scrolling has changed the garment on her body through nine real try-on renders to marigold, 8.3. Scrolling *is* draping. |
 | ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
 | **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** All twenty YouCam catalogue pieces ranked against the palette. |
-| ![Bring your own piece](shots/07-byop.png) | |
-| **Bring your own piece.** Upload any garment; its colour is read in the browser and judged against your measurements, with reasons. | |
+| ![Best against worst](shots/10-compare.png) | ![Bring your own piece](shots/07-byop.png) |
+| **Best against worst.** Same body, same light, same photograph — fourteen colours apart. Everything deciding which is which was measured from her face. | **Bring your own piece.** Upload any garment; its colour is read in the browser and judged against your measurements, with reasons. |
 
 ---
 
@@ -68,6 +68,10 @@ That is the point of the interaction rather than a flourish on top of it: drapin
 swatch after swatch against someone and watching what each one does. Scrolling is the same
 gesture. Anyone who uploads their own photograph gets a clickable rail instead — we render on
 demand rather than faking the scrub with a CSS tint.
+
+The scrub is sequential, so it ends with the two extremes **side by side**: her best colour
+against her worst, same body and same light, with the measured reasoning under each. That is the
+question a shopper actually asks, and it had no answer anywhere else in the product.
 
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.
