@@ -160,6 +160,123 @@ img {
 }
 
 /* ---------------------------------------------------------------- */
+/* Section nav                                                       */
+/* An open sitting runs to roughly a dozen screens. Without this the  */
+/* later sections are effectively undiscoverable.                     */
+/* ---------------------------------------------------------------- */
+
+.sectionnav {
+  position: sticky;
+  top: 57px;
+  z-index: 40;
+  display: flex;
+  gap: clamp(1rem, 3vw, 2.25rem);
+  align-items: center;
+  padding: 0.7rem 0;
+  background: color-mix(in srgb, var(--wall) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hairline);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sectionnav::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionnav a {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.sectionnav a:hover {
+  color: var(--ink);
+}
+
+.sectionnav a[aria-current="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* Anchors must clear both sticky bars when jumped to. */
+.section {
+  scroll-margin-top: 118px;
+}
+
+/* ---------------------------------------------------------------- */
+/* Best vs worst comparison                                          */
+/* ---------------------------------------------------------------- */
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+}
+
+@media (max-width: 640px) {
+  .compare {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compare figure {
+  margin: 0;
+  background: var(--mount);
+  border: 1px solid var(--hairline);
+  padding: clamp(0.4rem, 1vw, 0.8rem);
+}
+
+.compare img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--calibration);
+}
+
+.compare figcaption {
+  border-top: 1px solid var(--ink);
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.compare .verdict-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.compare .verdict-line strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.compare .verdict-line span {
+  font-family: var(--font-data);
+  font-size: 1.1rem;
+}
+
+.compare .meta {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+
+/* ---------------------------------------------------------------- */
 /* Hero                                                              */
 /* ---------------------------------------------------------------- */
 

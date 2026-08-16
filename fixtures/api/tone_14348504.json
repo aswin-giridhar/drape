@@ -4,13 +4,13 @@
     "error": null,
     "results": {
       "color": {
-        "eye_color": "#2d242d",
-        "eye_color_name": "Other",
-        "lip_color": "#c57678",
-        "eyebrow_color": "#3e3834",
-        "skin_color": "#ac8973",
-        "hair_color": "#FAF0BE",
-        "hair_color_name": "Blonde"
+        "eye_color": "#372018",
+        "eye_color_name": "Brown",
+        "lip_color": "#c48f8b",
+        "eyebrow_color": "#a78b78",
+        "skin_color": "#b09078",
+        "hair_color": "#B56637",
+        "hair_color_name": "Auburn"
       },
       "face_quality": {
         "has_face": true,

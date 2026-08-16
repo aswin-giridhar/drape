@@ -193,10 +193,14 @@ export default function Page() {
 
       {scan && (
         <>
+          <SectionNav />
           <ColourCard scan={scan} portrait={sitter?.facePhoto ?? ownFace ?? undefined} />
           <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
-          <TheGallery scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
+          {/* Bring-your-own sits above the catalogue: it is the section that
+              proves this works on anything, and it was previously buried
+              eleven screens down beneath a grid of football kits. */}
           <YourOwnPiece scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
+          <TheGallery scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <div style={{ paddingTop: "var(--hang)" }}>
             <button
               className="ghost"
@@ -232,6 +236,46 @@ export default function Page() {
 }
 
 /* ------------------------------------------------------------------ */
+
+/**
+ * An open sitting runs to roughly a dozen screens, most of it the pinned scrub.
+ * Without a way to move between sections the later ones are undiscoverable.
+ */
+function SectionNav() {
+  const items = [
+    { id: "card", label: "Colour card" },
+    { id: "rail", label: "The rail" },
+    { id: "own", label: "Your own piece" },
+    { id: "gallery", label: "Collection" },
+  ];
+  const [current, setCurrent] = useState("card");
+
+  useEffect(() => {
+    const onScroll = () => {
+      // The section whose top has most recently passed the sticky bars.
+      let active = items[0].id;
+      for (const it of items) {
+        const el = document.getElementById(it.id);
+        if (el && el.getBoundingClientRect().top <= 140) active = it.id;
+      }
+      setCurrent(active);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <nav className="sectionnav" aria-label="Sections of this sitting">
+      {items.map((it) => (
+        <a key={it.id} href={`#${it.id}`} aria-current={current === it.id ? "true" : undefined}>
+          {it.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
 
 function Hero() {
   // A colour deck fanned open — the physical object this product replaces.
@@ -659,9 +703,15 @@ function DrapingScrub({
     <div
       ref={stageRef}
       className="scrub-stage"
-      // Roughly two-thirds of a screen of travel per colour: enough to read each
-      // one, short enough that the section doesn't overstay its welcome.
-      style={{ height: `${100 + frames.length * 62}vh` }}
+      /*
+       * About a third of a screen of travel per colour - roughly three wheel
+       * notches, which reads as flipping swatches rather than trudging.
+       *
+       * The cap matters more than the constant: travel scaled linearly with a
+       * frame count we don't control, and going from 9 colours to 14 pushed the
+       * section to eleven screens and buried everything below it.
+       */
+      style={{ height: `${Math.min(100 + frames.length * 34, 580)}vh` }}
     >
       <div className="scrub-pin">
         <div className="scrub-plate">
@@ -867,7 +917,33 @@ function TheRail({
 
       {/* Pre-rendered sitters get the scrub; everyone else gets the clickable rail. */}
       {scrubFrames.length >= 3 ? (
-        <DrapingScrub frames={scrubFrames} />
+        <>
+          <DrapingScrub frames={scrubFrames} />
+          {/* The scrub is strictly sequential, so the one question a shopper
+              actually asks - is this better than that? - had no answer anywhere.
+              Here they sit next to each other. */}
+          <div className="compare">
+            {[scrubFrames[scrubFrames.length - 1], scrubFrames[0]].map((f, i) => (
+              <figure key={f.slug}>
+                <img src={f.src} alt={`The sitter wearing ${f.title}`} />
+                <figcaption>
+                  <span className="meta">{i === 0 ? "Her best" : "Her worst"}</span>
+                  <span className="verdict-line">
+                    <strong>{f.title}</strong>
+                    <span>{f.score.score.toFixed(1)}</span>
+                  </span>
+                  <span className="meta">
+                    {f.hex} · {f.score.verdict} · ΔE {f.score.deltaE.toFixed(0)}
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="lede" style={{ marginTop: "1.5rem" }}>
+            Same body, same light, same photograph — {scrubFrames.length} colours apart. Everything
+            deciding which is which was measured from her face, not chosen by eye.
+          </p>
+        </>
       ) : (
       <div className="gallery">
         {ranked.map(({ item, score }) => {
