@@ -323,7 +323,10 @@ img {
 }
 
 .hero h1 {
-  font-size: clamp(3rem, 9.5vw, 7rem);
+  /* The reference work sets display type at viewport scale, not container
+     scale. This runs to ~11vw against the old 9.5. */
+  font-size: clamp(3.25rem, 11vw, 9rem);
+  letter-spacing: -0.03em;
 }
 
 .hero h1 em {
@@ -977,5 +980,93 @@ button:disabled {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Arrival                                                           */
+/*                                                                   */
+/* Award-winning work in this category is alive on arrival: the page  */
+/* resolves rather than simply being there. That choreography, not    */
+/* the dark grounds those sites favour, is what reads as "finished".  */
+/* We keep the light achromatic ground - judging colour against a     */
+/* neutral surface is the whole argument - and borrow the motion.     */
+/* ---------------------------------------------------------------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes unveil {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Page-load sequence: eyebrow, headline, lede, then the deck fans open. */
+.hero .eyebrow {
+  animation: rise 700ms var(--ease) 80ms backwards;
+}
+
+.hero h1 {
+  animation: rise 900ms var(--ease) 180ms backwards;
+}
+
+.hero .lede {
+  animation: rise 900ms var(--ease) 340ms backwards;
+}
+
+/* Scroll reveals, designed to FAIL VISIBLE.
+ *
+ * Content is visible by default. Script marks the elements it is actually
+ * observing with .watching, and only those are hidden pending .seen. Anything
+ * script never reaches - content rendered after the observer ran, a missing
+ * API, a thrown error - simply stays on screen. An earlier version hid by
+ * default and left two blocks permanently invisible. */
+[data-reveal].watching {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 800ms var(--ease), transform 800ms var(--ease);
+  will-change: opacity, transform;
+}
+
+[data-reveal].watching.seen {
+  opacity: 1;
+  transform: none;
+}
+
+/* Staggered children within a revealed group. */
+[data-reveal].watching.seen > * {
+  animation: rise 700ms var(--ease) backwards;
+}
+
+[data-reveal].watching.seen > *:nth-child(1) { animation-delay: 60ms; }
+[data-reveal].watching.seen > *:nth-child(2) { animation-delay: 140ms; }
+[data-reveal].watching.seen > *:nth-child(3) { animation-delay: 220ms; }
+[data-reveal].watching.seen > *:nth-child(4) { animation-delay: 300ms; }
+
+/* Section rules draw themselves in, the way a gallery hangs a label - but only
+   once scrolled to, so it isn't spent unseen below the fold. */
+[data-reveal].seen .section-head,
+.section-head[data-reveal].seen {
+  animation: unveil 900ms var(--ease) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal].watching,
+  [data-reveal].watching.seen {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

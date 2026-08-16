@@ -78,6 +78,9 @@ export default function Page() {
     unreachable?: boolean;
   } | null>(null);
 
+  // Re-scan for reveal targets whenever the view changes.
+  useReveals(scan ? sitter?.id ?? "own" : "intro");
+
   useEffect(() => {
     fetch("/api/budget")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -237,6 +240,60 @@ export default function Page() {
 
 /* ------------------------------------------------------------------ */
 
+
+/**
+ * Releases [data-reveal] elements as they scroll into view.
+ *
+ * Deliberately NOT applied around the pinned scrub: a transform on an ancestor
+ * establishes a containing block and breaks position: sticky.
+ */
+function useReveals(key: unknown) {
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return; // stays visible
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          if (en.isIntersecting) {
+            en.target.classList.add("seen");
+            io.unobserve(en.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
+    );
+
+    // Marking an element .watching is what hides it, so we only ever hide
+    // something we are definitely observing.
+    const watch = () => {
+      for (const el of document.querySelectorAll("[data-reveal]:not(.watching)")) {
+        el.classList.add("watching");
+        io.observe(el);
+      }
+    };
+    watch();
+
+    // Sections that arrive after a fetch (the comparison, the catalogue) are
+    // not in the DOM on the first pass.
+    const mo = new MutationObserver(watch);
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // Belt and braces: anything still unseen after a few seconds is released,
+    // so a missed observation can never leave content invisible.
+    const failsafe = window.setTimeout(() => {
+      document
+        .querySelectorAll("[data-reveal].watching:not(.seen)")
+        .forEach((el) => el.classList.add("seen"));
+    }, 6000);
+
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+      window.clearTimeout(failsafe);
+    };
+  }, [key]);
+}
+
 /**
  * An open sitting runs to roughly a dozen screens, most of it the pinned scrub.
  * Without a way to move between sections the later ones are undiscoverable.
@@ -339,12 +396,12 @@ function TheSitting({
 }) {
   return (
     <section className="section" id="sitting">
-      <div className="section-head">
+      <div className="section-head" data-reveal>
         <h2>The sitting</h2>
         <span className="idx">Choose a subject</span>
       </div>
 
-      <div className="gallery">
+      <div className="gallery" data-reveal>
         {sitters.map((s) => (
           <button key={s.id} className="exhibit" onClick={() => onOpen(s)} disabled={busy}>
             <div className="frame">
@@ -461,7 +518,7 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
         </div>
       ))}
 
-      <div className="sitting">
+      <div className="sitting" data-reveal>
         <div className="drape-frame">
           <div className="drape-plate">
             {photo && <img src={photo} alt="The subject of this sitting" />}
@@ -922,7 +979,7 @@ function TheRail({
           {/* The scrub is strictly sequential, so the one question a shopper
               actually asks - is this better than that? - had no answer anywhere.
               Here they sit next to each other. */}
-          <div className="compare">
+          <div className="compare" data-reveal>
             {[scrubFrames[scrubFrames.length - 1], scrubFrames[0]].map((f, i) => (
               <figure key={f.slug}>
                 <img src={f.src} alt={`The sitter wearing ${f.title}`} />
@@ -945,7 +1002,7 @@ function TheRail({
           </p>
         </>
       ) : (
-      <div className="gallery">
+      <div className="gallery" data-reveal>
         {ranked.map(({ item, score }) => {
           const shown = tryOns[item.id];
           return (
@@ -1115,7 +1172,7 @@ function TheGallery({
         </div>
       )}
 
-      <div className="gallery">
+      <div className="gallery" data-reveal>
         {ranked.map((item) => {
           const s = scores[item.id];
           const shown = tryOns[item.id];
@@ -1223,7 +1280,7 @@ function YourOwnPiece({
 
   return (
     <section className="section" id="own">
-      <div className="section-head">
+      <div className="section-head" data-reveal>
         <h2>Bring your own piece</h2>
         <span className="idx">Anything, from anywhere</span>
       </div>
