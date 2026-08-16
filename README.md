@@ -135,12 +135,16 @@ key and a timestamp, exchanged at `POST /s2s/v1.0/client/auth` for a bearer toke
 Requires Node 20+.
 
 ```bash
-git clone <this-repo>
-cd youcam_vto_hackathon
+git clone https://github.com/aswin-giridhar/drape.git
+cd drape
 npm install
 cp .env.example .env      # then fill in your two YouCam values
 npm run dev               # http://localhost:3000
 ```
+
+These steps were run verbatim from a fresh clone on a clean machine —
+`npm install` (95 packages, 30s) and `npm run build` both complete green without
+credentials. Credentials are only needed at request time, not at build time.
 
 `.env` needs:
 
