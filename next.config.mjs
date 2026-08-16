@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // WSL /mnt has no inotify - polling is required for HMR to fire at all
-  webpack: (config) => {
-    config.watchOptions = { poll: 1000, aggregateTimeout: 300 };
-    return config;
-  },
+  // Next 16 uses Turbopack by default, which does its own file watching.
+  // An empty config is enough; a leftover `webpack` block makes the build fail.
+  //
+  // Note for WSL: projects under /mnt/* get no inotify events, so if dev-server
+  // HMR appears not to fire, run with CHOKIDAR_USEPOLLING=true rather than
+  // assuming a cache bug.
+  turbopack: {},
 };
+
 export default nextConfig;

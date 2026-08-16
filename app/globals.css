@@ -1,0 +1,681 @@
+/*
+ * Drape — a gallery.
+ *
+ * Two constraints drive every decision here:
+ *
+ * 1. The interface is achromatic. Professional colour analysts judge against
+ *    neutral surfaces because any surrounding hue biases perception of the
+ *    colour being judged. Every chromatic pixel belongs to the user's measured
+ *    palette, never to the brand. The greys below sit at a*=b*=0.
+ *
+ * 2. Results are exhibits, not form output. Each garment hangs framed with a
+ *    tombstone label stating what it is and what we measured — the same
+ *    information a museum label carries: subject, medium, provenance.
+ */
+
+:root {
+  /* Gallery neutrals — no tint, so swatches read true. */
+  --wall: #f3f3f3;
+  --wall-deep: #e9e9e9;
+  --mount: #ffffff;
+  --hairline: #d8d8d8;
+  --hairline-soft: #e6e6e6;
+  --pencil: #8c8c8c;
+  --graphite: #5a5a5a;
+  --ink: #101010;
+
+  /* 18% grey — the reference a draping session is judged against. */
+  --calibration: #949494;
+
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+  --hang: clamp(3.5rem, 9vw, 7rem); /* vertical rhythm between exhibits */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--wall);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---------------------------------------------------------------- */
+/* Type                                                              */
+/* ---------------------------------------------------------------- */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 0.94;
+  margin: 0;
+}
+
+/* Measured values are mono; interpretations are serif. The split is the
+   point — you can see what was instrument-read vs what was inferred. */
+.data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  margin: 0 0 1rem;
+}
+
+.lede {
+  font-size: clamp(1.0625rem, 1.6vw, 1.3125rem);
+  line-height: 1.5;
+  color: var(--graphite);
+  max-width: 44ch;
+}
+
+/* ---------------------------------------------------------------- */
+/* Shell                                                             */
+/* ---------------------------------------------------------------- */
+
+.shell {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 8rem;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  background: color-mix(in srgb, var(--wall) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hairline);
+  flex-wrap: wrap;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.wordmark small {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+
+.meter {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meter i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+  display: inline-block;
+}
+
+.meter i.off {
+  background: var(--pencil);
+}
+
+/* ---------------------------------------------------------------- */
+/* Hero                                                              */
+/* ---------------------------------------------------------------- */
+
+.hero {
+  padding: clamp(4rem, 12vw, 9rem) 0 var(--hang);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 9.5vw, 7rem);
+}
+
+.hero h1 em {
+  font-style: italic;
+}
+
+/* A colour deck fanned open — the physical object this product replaces.
+   Cards pivot from a single point at the bottom, the way a swatch fan opens. */
+.fan {
+  position: relative;
+  height: clamp(220px, 30vw, 340px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.fan span {
+  position: absolute;
+  bottom: 0;
+  width: clamp(26px, 3.2vw, 38px);
+  height: 82%;
+  transform-origin: bottom center;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  animation: fan-open 900ms var(--ease) backwards;
+}
+
+@keyframes fan-open {
+  from {
+    transform: rotate(0deg) translateY(6%);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Sections                                                          */
+/* ---------------------------------------------------------------- */
+
+.section {
+  padding-top: var(--hang);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-top: 1px solid var(--ink);
+  padding-top: 0.85rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.section-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 400;
+  margin: 0;
+  line-height: 1;
+}
+
+.section-head .idx {
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+
+/* ---------------------------------------------------------------- */
+/* Exhibit — a framed work with a tombstone label                    */
+/* ---------------------------------------------------------------- */
+
+.exhibit {
+  display: flex;
+  flex-direction: column;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.frame {
+  background: var(--mount);
+  padding: clamp(0.5rem, 1.2vw, 0.9rem);
+  border: 1px solid var(--hairline);
+  position: relative;
+  overflow: hidden;
+}
+
+.frame > img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--calibration);
+  transition: transform 600ms var(--ease);
+}
+
+.exhibit:hover .frame > img,
+.exhibit:focus-visible .frame > img {
+  transform: scale(1.03);
+}
+
+/* Tombstone label: what a gallery prints beside the work. */
+.label {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ink);
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.label .title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  line-height: 1.15;
+}
+
+.label .meta {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+
+.label .score {
+  font-family: var(--font-data);
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+/* ---------------------------------------------------------------- */
+/* THE DRAPE — signature element                                     */
+/* ---------------------------------------------------------------- */
+
+.sitting {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .sitting {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drape-frame {
+  position: relative;
+  background: var(--mount);
+  padding: clamp(0.5rem, 1.2vw, 0.9rem);
+  border: 1px solid var(--hairline);
+}
+
+.drape-plate {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: var(--calibration);
+}
+
+.drape-plate > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drape-panels {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+}
+
+.drape-panel {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  transition: width 520ms var(--ease);
+}
+
+/* The gesture: cloth falling across the face, as a stylist would hold it. */
+.drape-panels:hover .drape-panel,
+.drape-panels:focus-within .drape-panel {
+  width: 74%;
+}
+
+.drape-panel:hover,
+.drape-panel:focus-visible {
+  width: 185% !important;
+  z-index: 2;
+}
+
+.drape-panel span {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-data);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 200ms;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.drape-panel:hover span,
+.drape-panel:focus-visible span {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- */
+/* Readout                                                           */
+/* ---------------------------------------------------------------- */
+
+.readout {
+  margin: 0;
+  border-top: 1px solid var(--ink);
+}
+
+.readout div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.readout dt {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  margin: 0;
+}
+
+.readout dd {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chip {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--hairline);
+  display: inline-block;
+}
+
+/* ---------------------------------------------------------------- */
+/* Colour card                                                       */
+/* ---------------------------------------------------------------- */
+
+.season {
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  margin: 0.35rem 0 0.6rem;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swatches li {
+  width: 46px;
+  height: 64px;
+  position: relative;
+}
+
+.swatches li::after {
+  content: attr(data-hex);
+  position: absolute;
+  inset: auto 0 -1.35rem 0;
+  font-family: var(--font-data);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  color: var(--pencil);
+  opacity: 0;
+  transition: opacity 160ms;
+}
+
+.swatches li:hover::after {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- */
+/* Gallery grid                                                      */
+/* ---------------------------------------------------------------- */
+
+.gallery {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.75rem);
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+/* ---------------------------------------------------------------- */
+/* Verdict                                                           */
+/* ---------------------------------------------------------------- */
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border-top: 1px solid var(--ink);
+  padding-top: 1rem;
+}
+
+.verdict b {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 4.5rem);
+  font-weight: 400;
+  line-height: 0.9;
+}
+
+.verdict .of {
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  color: var(--pencil);
+}
+
+.verdict .tag {
+  margin-left: auto;
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
+  padding: 0.3rem 0.6rem;
+}
+
+.reasons {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+}
+
+.reasons li {
+  padding: 0.65rem 0 0.65rem 1.5rem;
+  position: relative;
+  border-bottom: 1px solid var(--hairline-soft);
+  font-size: 0.9375rem;
+  color: var(--graphite);
+}
+
+.reasons li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.2rem;
+  width: 10px;
+  height: 1px;
+  background: var(--ink);
+}
+
+/* ---------------------------------------------------------------- */
+/* Controls                                                          */
+/* ---------------------------------------------------------------- */
+
+button,
+.filebtn {
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wall);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 0.7rem 1.25rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  transition: background 200ms var(--ease), color 200ms var(--ease);
+}
+
+button:hover:not(:disabled),
+.filebtn:hover {
+  background: var(--graphite);
+  border-color: var(--graphite);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--wall);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- */
+/* Notices — "absent" and "broken" must never look the same          */
+/* ---------------------------------------------------------------- */
+
+.notice {
+  border: 1px solid var(--ink);
+  border-left-width: 4px;
+  padding: 0.9rem 1.15rem;
+  margin: 1.25rem 0;
+  font-size: 0.9375rem;
+  background: var(--mount);
+  max-width: 64ch;
+}
+
+.notice strong {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.notice.paused {
+  border-left-color: var(--calibration);
+}
+
+/* ---------------------------------------------------------------- */
+/* Utility                                                           */
+/* ---------------------------------------------------------------- */
+
+.spinner {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid var(--pencil);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.working {
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

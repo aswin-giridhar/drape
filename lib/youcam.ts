@@ -86,8 +86,11 @@ let cachedToken: { token: string; obtainedAt: number } | null = null;
 const TOKEN_MAX_AGE_MS = 20 * 60 * 1000;
 
 function credentials() {
-  const key = process.env.YouCam_API_KEY;
-  const secret = process.env.YouCam_SecretKey;
+  // .trim() is load-bearing: a .env saved with CRLF line endings leaves a
+  // trailing \r on the value, which produces an opaque auth failure that only
+  // shows up wherever the file was written on Windows.
+  const key = process.env.YouCam_API_KEY?.trim();
+  const secret = process.env.YouCam_SecretKey?.trim();
   if (!key || !secret) {
     throw new YouCamError(
       "YouCam_API_KEY / YouCam_SecretKey missing from the environment",

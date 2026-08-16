@@ -19,3 +19,5 @@ dist/
 
 # tooling artifacts
 .playwright-mcp/
+.vercel
+.env*
