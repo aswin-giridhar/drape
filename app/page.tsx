@@ -632,7 +632,13 @@ function DrapingScrub({
         if (!el) return;
         const travel = el.offsetHeight - window.innerHeight;
         if (travel <= 0) return;
-        const p = Math.min(1, Math.max(0, -el.getBoundingClientRect().top / travel));
+        const raw = Math.min(1, Math.max(0, -el.getBoundingClientRect().top / travel));
+        // Reach the final frame at 90% of travel, not at exactly 100%. A linear
+        // mapping makes the best colour exist only at p === 1, which sub-pixel
+        // rounding and elastic scrolling never quite deliver - so her best
+        // colour was unreachable. Landing early also lets it hold while you
+        // scroll out, which is the note the section should end on.
+        const p = Math.min(1, raw / 0.9);
         setIndex(Math.min(frames.length - 1, Math.floor(p * frames.length * 0.999)));
       });
     };
