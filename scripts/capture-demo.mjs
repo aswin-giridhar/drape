@@ -34,7 +34,7 @@ async function roll(seconds, during) {
   await task;
 }
 
-/** Smooth scroll to a selector over `ms`, so the footage pans rather than jumps. */
+/** Smooth scroll to a selector over `ms`, so footage pans rather than jumps. */
 async function glideTo(selector, ms = 2000, offset = -80) {
   await page.evaluate(
     ([sel, dur, off]) => {
@@ -58,6 +58,34 @@ async function glideTo(selector, ms = 2000, offset = -80) {
   );
 }
 
+/**
+ * Roll footage while scrolling through the pinned scrub stage.
+ *
+ * Scroll is advanced once per captured frame rather than by an in-page
+ * requestAnimationFrame loop: two independent clocks drift against each other
+ * under screenshot load, and the earlier version left the garment stuck on one
+ * colour for twenty seconds of footage. One clock cannot desync from itself.
+ */
+async function rollScrub(seconds, portion = 1) {
+  const total = Math.max(1, Math.round(seconds * FPS));
+  const { start, end } = await page.evaluate((frac) => {
+    const el = document.querySelector(".scrub-stage");
+    if (!el) return { start: window.scrollY, end: window.scrollY };
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    return { start: window.scrollY, end: top + (el.offsetHeight - window.innerHeight) * frac };
+  }, portion);
+
+  for (let i = 0; i < total; i++) {
+    const t0 = Date.now();
+    await page.evaluate((y) => window.scrollTo(0, y), start + ((end - start) * i) / (total - 1 || 1));
+    await page
+      .screenshot({ path: `${OUT}/f${String(frame++).padStart(5, "0")}.jpg`, type: "jpeg", quality: 82 })
+      .catch(() => {});
+    const wait = 1000 / FPS - (Date.now() - t0);
+    if (wait > 0) await page.waitForTimeout(wait);
+  }
+}
+
 const clickText = (re) =>
   page.evaluate((src) => {
     const rx = new RegExp(src);
@@ -67,9 +95,9 @@ const clickText = (re) =>
   }, re.source);
 
 const waitFor = (fn, timeout = 120000) =>
-  page.waitForFunction(fn, null, { timeout, polling: 500 }).catch(() => {});
+  page.waitForFunction(fn, null, { timeout, polling: 400 }).catch(() => {});
 
-const browser = await chromium.launch({ executablePath: "/usr/bin/google-chrome", args: ["--force-device-scale-factor=1"] });
+const browser = await chromium.launch({ executablePath: "/usr/bin/google-chrome" });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 page = await ctx.newPage();
 
@@ -79,82 +107,48 @@ await page.waitForTimeout(1500);
 
 // ── Beat 1: the hero ────────────────────────────────────────────────
 console.log("beat 1: hero");
-await roll(16);
+await roll(15);
 
 // ── Beat 2: the sitting and the colour card ─────────────────────────
-console.log("beat 2: sitting");
-await roll(3, async () => {
-  await glideTo("#sitting", 1800);
-});
+console.log("beat 2: the sitting");
+await roll(3, () => glideTo("#sitting", 1800));
 await clickText(/Sitting no\. 1/);
 await waitFor(() => document.querySelector("#card"));
 await roll(4);
-await roll(14, async () => {
-  await glideTo("#card", 3000);
-  await page.waitForTimeout(6000);
-  await glideTo("#card .readout", 2500, -200);
+await roll(16, async () => {
+  await glideTo("#card", 2500);
+  await page.waitForTimeout(7000);
+  await glideTo("#card .readout", 2500, -220);
 });
-await roll(14);
+await roll(10);
 
-// ── Beat 3: the rail ────────────────────────────────────────────────
-console.log("beat 3: rail");
-await waitFor(() => document.querySelector("#rail .exhibit"));
-await roll(6, async () => {
-  await glideTo("#rail", 2500);
-});
-await roll(20, async () => {
-  await page.waitForTimeout(4000);
-  await page.mouse.move(400, 500);
-  await page.waitForTimeout(1500);
-  await page.evaluate(() => window.scrollBy({ top: 420, behavior: "smooth" }));
-  await page.waitForTimeout(4000);
-  await page.evaluate(() => window.scrollBy({ top: 420, behavior: "smooth" }));
-});
-await roll(14, async () => {
-  await glideTo("#rail", 2500);
-});
-
-// ── Beat 4: hang the top-ranked colour ──────────────────────────────
-console.log("beat 4: hang it");
-const hung = await page.evaluate(() => {
-  const rail = document.querySelector("#rail");
-  const b = [...rail.querySelectorAll("button")].find((x) => /hang it on me/i.test(x.textContent));
-  if (b) b.click();
-  return !!b;
-});
-console.log("  hang clicked:", hung);
+// ── Beat 3: THE SCRUB — the centrepiece ─────────────────────────────
+console.log("beat 3: the draping scrub");
+await waitFor(() => document.querySelector(".scrub-stage"));
+// let every frame decode before we scroll, or the reveal stutters on camera
+await waitFor(() => !/Preparing/.test(document.querySelector(".scrub-pin .eyebrow")?.textContent || ""));
+await roll(5, () => glideTo("#rail", 2200));
 await roll(6);
-await waitFor(() =>
-  [...document.querySelectorAll("#rail .exhibit")].some((e) => /Hung on the sitter/i.test(e.textContent)),
-);
-await roll(18);
+await rollScrub(42);
+await roll(6);
 
-// ── Beat 5: a second sitter ─────────────────────────────────────────
-console.log("beat 5: second sitter");
+// ── Beat 4: a second sitter, same rail ──────────────────────────────
+console.log("beat 4: second sitter");
 await clickText(/Close this sitting/);
 await page.waitForTimeout(800);
-await roll(3, async () => {
-  await glideTo("#sitting", 1500);
-});
+await roll(3, () => glideTo("#sitting", 1400));
 await clickText(/Sitting no\. 2/);
 await waitFor(() => document.querySelector("#card"));
-await roll(8, async () => {
-  await glideTo("#card", 2000);
-});
-await waitFor(() => document.querySelector("#rail .exhibit"));
-await roll(12, async () => {
-  await glideTo("#rail", 2500);
-  await page.waitForTimeout(6000);
-});
+await roll(8, () => glideTo("#card", 2000));
+await waitFor(() => document.querySelector(".scrub-stage"));
+await waitFor(() => !/Preparing/.test(document.querySelector(".scrub-pin .eyebrow")?.textContent || ""));
+await roll(4, () => glideTo("#rail", 1800));
+await rollScrub(22);
 
-// ── Beat 6: the collection, and out ─────────────────────────────────
-console.log("beat 6: close");
-await roll(8, async () => {
-  await glideTo("#gallery", 2500);
-});
-await roll(4, async () => {
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-});
+// ── Beat 5: the collection, and out ─────────────────────────────────
+console.log("beat 5: close");
+await roll(8, () => glideTo("#gallery", 2500));
+await roll(4, () => page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" })));
 
 console.log(`captured ${frame} frames at ${FPS}fps -> ${(frame / FPS).toFixed(0)}s`);
 await browser.close();

@@ -56,8 +56,15 @@ own body in about fifteen seconds.
 spanning warm to cool and light to deep. Nothing changes but the colour, so the
 ranking is entirely about the person. Our first sitter measures True Spring and
 gets Marigold 8.3 and Camel 6.2 at the top. Our second measures Dark Autumn — and
-the same fourteen garments reorder completely, with Rust and Moss on top. Same
-rail, different person, different answer.
+the same fourteen garments reorder completely, with Rust on top. Same rail,
+different person, different answer.
+
+And you don't click through it, you **scroll** it. The sitter stays pinned while
+scrolling cycles the garment on her body from her worst colour up to her best.
+Every frame is a real try-on render generated ahead of time, so the interaction
+costs nothing at view time and cannot fail while a judge is looking at it. That
+is deliberate: draping is holding swatch after swatch against someone and
+watching what each does. Scrolling is the same gesture.
 
 ### How we built it
 

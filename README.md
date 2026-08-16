@@ -17,8 +17,8 @@ sittings need no API units, so you can explore the whole product immediately.
 | --- | --- |
 | ![The hero](shots/01-home.png) | ![Your colour card](shots/02-card.png) |
 | **The sitting.** The interface is deliberately achromatic — the only colour on screen is the user's own measured palette. | **Your colour card.** Measured skin, eye and lip hex; ITA depth; undertone; contrast. Monospace means instrument-read. |
-| ![The house rail](shots/04-rail.png) | ![Hung on the sitter](shots/05-rail-tryon.png) |
-| **The house rail.** One garment, fourteen colours, ranked. Only the colour changes, so the ranking is entirely about the person. | **Hung on the sitter.** The top-ranked colour rendered on her actual body by YouCam Apparel VTO. |
+| ![The scrub, worst colour](shots/04-scrub-worst.png) | ![The scrub, best colour](shots/05-scrub-best.png) |
+| **The draping scrub — scroll begins.** The sitter is pinned at her worst colour: charcoal, 0.5, avoid. | **…and ends on her best.** Scrolling has changed the garment on her body through nine real try-on renders to marigold, 8.3. Scrolling *is* draping. |
 | ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
 | **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** All twenty YouCam catalogue pieces ranked against the palette. |
 | ![Bring your own piece](shots/07-byop.png) | |
@@ -49,15 +49,25 @@ get none of that, so they guess, and colour is a leading reason clothes come bac
    redness penalty. The score comes with reasons, not just a number.
 4. **Proves it.** YouCam's AI Clothes Virtual Try-On hangs the garment on the person's own body.
 
-### The house rail
+### The house rail, and the draping scrub
 
 The clearest demonstration is the **house rail**: one garment, fourteen colours spanning warm to
 cool and light to deep. Nothing changes but the colour, so the ranking is entirely about the
 person. For the sitter in the demo — measured as True Spring — it ranks Marigold 8.3 and Camel 6.2
 at the top, and Charcoal, Slate and Petrol at the bottom. That is textbook warm-clear colour
-theory, arrived at purely from measurement, and any one of them can be rendered on her in about
-15 seconds. A second sitter measures Dark Autumn, and the same fourteen garments reorder
-completely — Rust and Moss rise to the top and Marigold falls away.
+theory, arrived at purely from measurement. A second sitter measures Dark Autumn, and the same
+fourteen garments reorder completely — Rust rises to the top and Marigold falls away.
+
+You don't click through that rail. You **scroll** it. The sitter stays pinned while scrolling
+cycles the garment on her body from her worst colour up to her best, with the score, verdict and
+palette position moving in step. Every frame is a real YouCam try-on render generated ahead of
+time and served as a static file, so the whole interaction costs no units at view time and cannot
+fail while someone is looking at it.
+
+That is the point of the interaction rather than a flourish on top of it: draping *is* holding
+swatch after swatch against someone and watching what each one does. Scrolling is the same
+gesture. Anyone who uploads their own photograph gets a clickable rail instead — we render on
+demand rather than faking the scrub with a CSS tint.
 
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.

@@ -1,7 +1,8 @@
 # Drape — demo video script
 
 **Target: 2:30. Measured narration rate 2.65 words/sec → budget ≤ 400 words.**
-This script is **396 words**. Do not add to it without cutting elsewhere.
+This script is **359 words ≈ 2:15 spoken**, over **2:32 of footage** — the
+17-second margin is deliberate breathing room between beats. Don't spend it all.
 
 Rules requirements this script satisfies: 1–3 minutes, explains which YouCam APIs
 were used, shows the project working on the device it was built for.
@@ -33,42 +34,44 @@ were used, shows the project working on the device it was built for.
 
 ---
 
-### Beat 3 — the rail · 0:52–1:34 · 108 words
-**On screen:** scroll to the house rail. Hover a couple of tombstone labels.
+### Beat 3 — the draping scrub · 0:52–1:45 · 132 words
+**On screen:** the pinned stage. Keep scrolling steadily — the garment changes
+on her body: charcoal → petrol → moss → ivory → marigold.
 
 > Here's the part that matters. One garment. Fourteen colours. Nothing changes
 > but the colour — so the ranking is entirely about her.
 >
-> Marigold, eight point three. Camel, six point two. Down at the bottom,
-> charcoal and slate and fuchsia.
+> And I'm not clicking through a grid. I'm scrolling, and the garment is
+> changing on her body. Every one of these is a real YouCam try-on render,
+> generated ahead of time. This is what a stylist does — holds swatch after
+> swatch against you and watches what each one does.
 >
-> That ordering isn't a vibe. Every garment's colour is extracted in the browser
-> and scored against her palette using Delta E 2000, the perceptual colour
-> difference standard, weighted by how well its temperature matches her
-> undertone. That scoring engine is our own code, and it costs zero API units —
-> which is why we can rank a whole rail for free.
+> Charcoal, nought point five. Moss, two point seven. Ivory, four point seven.
+> And her best — marigold, eight point three.
+>
+> That ordering isn't a vibe. Each colour is scored against her palette with
+> Delta E 2000, the perceptual colour-difference standard, weighted by how well
+> its temperature matches her measured undertone. That engine is our own code
+> and costs zero API units.
 
 ---
 
-### Beat 4 — hang it · 1:34–1:59 · 66 words
-**On screen:** click "Hang it on me" on Marigold. Cut the wait. Reveal the render.
+### Beat 4 — the honest bit · 1:45–2:00 · 42 words
+**On screen:** let marigold hold on screen.
 
-> Then we prove it. YouCam's AI Clothes Virtual Try-On puts the top-ranked
-> colour on her actual body, in about fifteen seconds, for two units.
->
-> One thing we deliberately don't claim: we tested whether the garment changes
+> One thing we deliberately don't claim. We tested whether the garment changes
 > her measured skin scores. It moves them by nought point two. So we don't
 > pretend otherwise — we show the reasoning and the picture.
 
 ---
 
-### Beat 5 — a second sitter · 1:59–2:19 · 53 words
-**On screen:** back, open Sitting no. 2, jump to the rail.
+### Beat 5 — a second sitter · 2:00–2:20 · 53 words
+**On screen:** back, open Sitting no. 2, scroll her scrub to the end.
 
 > Different person, same rail. She measures Dark Autumn — depth minus
-> forty-seven, low contrast. Now rust and moss rank top, and marigold falls
-> away. Same fourteen garments, completely different answer, because the answer
-> was never about the garments.
+> forty-seven, low contrast. Now rust ranks top and marigold falls away. Same
+> fourteen garments, completely different answer, because the answer was never
+> about the garments.
 
 ---
 
