@@ -491,6 +491,147 @@ img {
 }
 
 /* ---------------------------------------------------------------- */
+/* THE DRAPING SCRUB                                                 */
+/* The sitter stays pinned while scroll walks the garment up her own */
+/* ranking. Every frame is a real try-on render, pre-generated, so    */
+/* the interaction costs nothing at view time and cannot fail live.   */
+/* ---------------------------------------------------------------- */
+
+.scrub-stage {
+  position: relative;
+  /* height is set inline from the frame count: more colours, longer travel */
+}
+
+.scrub-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
+  padding: 4vh 0;
+}
+
+@media (max-width: 860px) {
+  .scrub-pin {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 2vh 0;
+  }
+}
+
+.scrub-plate {
+  position: relative;
+  background: var(--mount);
+  border: 1px solid var(--hairline);
+  padding: clamp(0.4rem, 1vw, 0.8rem);
+  height: min(80vh, 660px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 860px) {
+  .scrub-plate {
+    height: min(52vh, 420px);
+  }
+}
+
+/* All frames are stacked and preloaded; only opacity changes, so switching
+   costs no layout and no decode at scroll time. */
+.scrub-plate img {
+  position: absolute;
+  inset: clamp(0.4rem, 1vw, 0.8rem);
+  width: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
+  height: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+
+.scrub-plate img.on {
+  opacity: 1;
+}
+
+.scrub-name {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: 1;
+  margin: 0.4rem 0 0;
+}
+
+.scrub-score {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5rem);
+  line-height: 0.85;
+}
+
+.scrub-bar {
+  height: 5px;
+  background: var(--wall-deep);
+  margin: 1rem 0 1.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.scrub-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ink);
+  width: 0;
+  transition: width 240ms var(--ease);
+}
+
+/* One tick per colour: a miniature of the whole rail, filling as you descend. */
+.scrub-ticks {
+  display: flex;
+  gap: 2px;
+  margin-top: 1.25rem;
+}
+
+.scrub-ticks span {
+  flex: 1;
+  height: 30px;
+  opacity: 0.25;
+  transition: opacity 220ms var(--ease);
+}
+
+.scrub-ticks span.on {
+  opacity: 1;
+}
+
+.scrub-hint {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.scrub-hint b {
+  font-weight: 400;
+  animation: nudge 1.9s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- */
 /* Gallery grid                                                      */
 /* ---------------------------------------------------------------- */
 

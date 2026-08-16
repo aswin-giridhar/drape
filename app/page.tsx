@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { extractGarmentColour } from "@/lib/garment";
 import { scoreGarment, type ColourProfile, type GarmentScore } from "@/lib/palette";
 import { labelFor } from "@/lib/skinzip";
@@ -588,6 +588,160 @@ interface RailItem extends CatalogueItem {
   hex: string;
 }
 
+/**
+ * THE DRAPING SCRUB.
+ *
+ * The sitter stays pinned; scrolling walks the garment up her own ranking,
+ * worst colour to best. Every frame is a real YouCam try-on render generated
+ * ahead of time, so the whole interaction costs no units at view time and
+ * cannot fail while someone is looking at it.
+ *
+ * Only shown when a pre-rendered sequence exists for this sitter. Someone who
+ * uploaded their own photograph gets the clickable rail instead — we will not
+ * fake this with a CSS tint.
+ */
+function DrapingScrub({
+  frames,
+}: {
+  frames: { slug: string; title: string; hex: string; src: string; score: GarmentScore }[];
+}) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [ready, setReady] = useState(0);
+
+  // Preload every frame before the stage can be scrolled through. Decoding is
+  // the expensive part of a scroll sequence, and doing it mid-scroll stutters.
+  useEffect(() => {
+    let alive = true;
+    frames.forEach((f) => {
+      const img = new Image();
+      img.onload = img.onerror = () => alive && setReady((n) => n + 1);
+      img.src = f.src;
+    });
+    return () => {
+      alive = false;
+    };
+  }, [frames]);
+
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = stageRef.current;
+        if (!el) return;
+        const travel = el.offsetHeight - window.innerHeight;
+        if (travel <= 0) return;
+        const p = Math.min(1, Math.max(0, -el.getBoundingClientRect().top / travel));
+        setIndex(Math.min(frames.length - 1, Math.floor(p * frames.length * 0.999)));
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [frames.length]);
+
+  const current = frames[index];
+  const loading = ready < frames.length;
+
+  return (
+    <div
+      ref={stageRef}
+      className="scrub-stage"
+      // Roughly two-thirds of a screen of travel per colour: enough to read each
+      // one, short enough that the section doesn't overstay its welcome.
+      style={{ height: `${100 + frames.length * 62}vh` }}
+    >
+      <div className="scrub-pin">
+        <div className="scrub-plate">
+          {frames.map((f, i) => (
+            <img
+              key={f.slug}
+              src={f.src}
+              alt={i === index ? `The sitter wearing ${f.title}` : ""}
+              className={i === index ? "on" : ""}
+              aria-hidden={i !== index}
+            />
+          ))}
+        </div>
+
+        <div>
+          <p className="eyebrow" style={{ margin: 0 }}>
+            {loading ? (
+              <>
+                <span className="spinner" style={{ marginRight: "0.5rem" }} />
+                Preparing {ready} of {frames.length}
+              </>
+            ) : (
+              <>
+                Colour {index + 1} of {frames.length}
+              </>
+            )}
+          </p>
+          <h3 className="display scrub-name">{current.title}</h3>
+
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginTop: "1.5rem" }}>
+            <span className="display scrub-score">{current.score.score.toFixed(1)}</span>
+            <span className="data muted" style={{ fontSize: "0.75rem" }}>
+              / 10
+            </span>
+            <span
+              className="data"
+              style={{
+                marginLeft: "auto",
+                fontSize: "0.625rem",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                border: "1px solid var(--ink)",
+                padding: "0.3rem 0.6rem",
+              }}
+            >
+              {current.score.verdict}
+            </span>
+          </div>
+
+          <div className="scrub-bar">
+            <i style={{ width: `${current.score.score * 10}%` }} />
+          </div>
+
+          <dl className="readout" style={{ margin: 0 }}>
+            <div>
+              <dt>Colour</dt>
+              <dd>
+                <span className="chip" style={{ background: current.hex }} />
+                {current.hex}
+              </dd>
+            </div>
+            <div>
+              <dt>Nearest in palette</dt>
+              <dd>
+                <span className="chip" style={{ background: current.score.nearestPaletteHex }} />
+                ΔE {current.score.deltaE.toFixed(0)}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="scrub-ticks" aria-hidden="true">
+            {frames.map((f, i) => (
+              <span key={f.slug} className={i <= index ? "on" : ""} style={{ background: f.hex }} />
+            ))}
+          </div>
+
+          <p className="scrub-hint">
+            <b>↓</b>
+            {index < frames.length - 1 ? "Keep scrolling — it gets better" : "Her best colour"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TheRail({
   scan,
   bodyPhoto,
@@ -601,6 +755,7 @@ function TheRail({
   const [tryOns, setTryOns] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [scrubSlugs, setScrubSlugs] = useState<string[] | null>(null);
 
   useEffect(() => {
     fetch("/rail/rail.json")
@@ -609,6 +764,19 @@ function TheRail({
       .catch(() => setErr("The house rail couldn't be loaded."));
   }, []);
 
+  // Pre-rendered try-on sequence, if one exists for this sitter. Absent for
+  // anyone who uploaded their own photograph — they get the clickable rail.
+  useEffect(() => {
+    if (!sitterId) {
+      setScrubSlugs([]);
+      return;
+    }
+    fetch(`/scrub/${sitterId}/frames.json`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((s) => setScrubSlugs(Array.isArray(s) ? s : []))
+      .catch(() => setScrubSlugs([]));
+  }, [sitterId]);
+
   // Each colour is declared, not sampled, so scoring is exact and instant.
   const ranked = useMemo(() => {
     if (!rail) return [];
@@ -616,6 +784,28 @@ function TheRail({
       .map((item) => ({ item, score: scoreGarment(item.hex, scan.profile) }))
       .sort((a, b) => b.score.score - a.score.score);
   }, [rail, scan.profile]);
+
+  /** Worst colour first, so scrolling climbs towards her best. */
+  const scrubFrames = useMemo(() => {
+    if (!rail || !scrubSlugs?.length || !sitterId) return [];
+    const bySlug = new Map(rail.map((r) => [r.thumb.split("/").pop()!.replace(".jpg", ""), r]));
+    return scrubSlugs
+      .map((slug) => {
+        const item = bySlug.get(slug);
+        if (!item) return null;
+        return {
+          slug,
+          title: item.title,
+          hex: item.hex,
+          src: `/scrub/${sitterId}/${slug}.jpg`,
+          score: scoreGarment(item.hex, scan.profile),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a!.score.score - b!.score.score) as {
+      slug: string; title: string; hex: string; src: string; score: GarmentScore;
+    }[];
+  }, [rail, scrubSlugs, sitterId, scan.profile]);
 
   const hang = useCallback(
     async (item: RailItem) => {
@@ -659,6 +849,7 @@ function TheRail({
       <p className="lede" style={{ marginBottom: "2rem" }}>
         This is draping itself: the same garment, over and over, in colours chosen to span warm to
         cool and light to deep. Only the colour changes — so the ranking is entirely about you.
+        {scrubFrames.length >= 3 && " Scroll, and watch it change on her."}
       </p>
 
       {err && (
@@ -668,6 +859,10 @@ function TheRail({
         </div>
       )}
 
+      {/* Pre-rendered sitters get the scrub; everyone else gets the clickable rail. */}
+      {scrubFrames.length >= 3 ? (
+        <DrapingScrub frames={scrubFrames} />
+      ) : (
       <div className="gallery">
         {ranked.map(({ item, score }) => {
           const shown = tryOns[item.id];
@@ -707,6 +902,7 @@ function TheRail({
           );
         })}
       </div>
+      )}
     </section>
   );
 }
