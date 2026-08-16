@@ -18,7 +18,7 @@ sittings need no API units, so you can explore the whole product immediately.
 | ![The hero](shots/01-home.png) | ![Your colour card](shots/02-card.png) |
 | **The sitting.** The interface is deliberately achromatic — the only colour on screen is the user's own measured palette. | **Your colour card.** Measured skin, eye and lip hex; ITA depth; undertone; contrast. Monospace means instrument-read. |
 | ![The scrub, worst colour](shots/04-scrub-worst.png) | ![The scrub, best colour](shots/05-scrub-best.png) |
-| **The draping scrub — scroll begins.** The sitter is pinned at her worst colour: charcoal, 0.5, avoid. | **…and ends on her best.** Scrolling has changed the garment on her body through nine real try-on renders to marigold, 8.3. Scrolling *is* draping. |
+| **The draping scrub — scroll begins.** The sitter is pinned at her worst colour: charcoal, 0.5, avoid. | **…and ends on her best.** Scrolling has changed the garment on her body through fourteen real try-on renders to marigold, 8.3. Scrolling *is* draping. |
 | ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
 | **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** All twenty YouCam catalogue pieces ranked against the palette. |
 | ![Best against worst](shots/10-compare.png) | ![Bring your own piece](shots/07-byop.png) |
