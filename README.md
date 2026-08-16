@@ -20,7 +20,9 @@ sittings need no API units, so you can explore the whole product immediately.
 | ![The house rail](shots/04-rail.png) | ![Hung on the sitter](shots/05-rail-tryon.png) |
 | **The house rail.** One garment, fourteen colours, ranked. Only the colour changes, so the ranking is entirely about the person. | **Hung on the sitter.** The top-ranked colour rendered on her actual body by YouCam Apparel VTO. |
 | ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
-| **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** The YouCam garment catalogue ranked against the palette, with skipped pieces reported rather than hidden. |
+| **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** All twenty YouCam catalogue pieces ranked against the palette. |
+| ![Bring your own piece](shots/07-byop.png) | |
+| **Bring your own piece.** Upload any garment; its colour is read in the browser and judged against your measurements, with reasons. | |
 
 ---
 
@@ -51,10 +53,11 @@ get none of that, so they guess, and colour is a leading reason clothes come bac
 
 The clearest demonstration is the **house rail**: one garment, fourteen colours spanning warm to
 cool and light to deep. Nothing changes but the colour, so the ranking is entirely about the
-person. For the sitter in the demo — measured as True Spring — it ranks Marigold 8.9 and Camel 7.2
-at the top, and Charcoal, Slate and Fuchsia at the bottom. That is textbook warm-clear colour
+person. For the sitter in the demo — measured as True Spring — it ranks Marigold 8.3 and Camel 6.2
+at the top, and Charcoal, Slate and Petrol at the bottom. That is textbook warm-clear colour
 theory, arrived at purely from measurement, and any one of them can be rendered on her in about
-15 seconds.
+15 seconds. A second sitter measures Dark Autumn, and the same fourteen garments reorder
+completely — Rust and Moss rise to the top and Marigold falls away.
 
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.
