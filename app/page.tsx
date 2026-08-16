@@ -180,6 +180,7 @@ export default function Page() {
       {scan && (
         <>
           <ColourCard scan={scan} portrait={sitter?.facePhoto ?? ownFace ?? undefined} />
+          <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <TheGallery scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <YourOwnPiece scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <div style={{ paddingTop: "var(--hang)" }}>
@@ -568,6 +569,134 @@ interface CatalogueItem {
   category: string;
 }
 
+/** House rail: one cut, many colours — digital draping in its purest form. */
+interface RailItem extends CatalogueItem {
+  hex: string;
+}
+
+function TheRail({
+  scan,
+  bodyPhoto,
+  sitterId,
+}: {
+  scan: ScanResult;
+  bodyPhoto?: string | null;
+  sitterId?: string;
+}) {
+  const [rail, setRail] = useState<RailItem[] | null>(null);
+  const [tryOns, setTryOns] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/rail/rail.json")
+      .then((r) => r.json())
+      .then(setRail)
+      .catch(() => setErr("The house rail couldn't be loaded."));
+  }, []);
+
+  // Each colour is declared, not sampled, so scoring is exact and instant.
+  const ranked = useMemo(() => {
+    if (!rail) return [];
+    return rail
+      .map((item) => ({ item, score: scoreGarment(item.hex, scan.profile) }))
+      .sort((a, b) => b.score.score - a.score.score);
+  }, [rail, scan.profile]);
+
+  const hang = useCallback(
+    async (item: RailItem) => {
+      if (!bodyPhoto) return;
+      setBusyId(item.id);
+      setErr(null);
+      try {
+        const [personBase64, garmentBase64] = await Promise.all([
+          bodyPhoto.startsWith("data:") ? Promise.resolve(bodyPhoto) : toDataUri(bodyPhoto),
+          toDataUri(item.thumb),
+        ]);
+        const r = await fetch("/api/tryon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            personBase64,
+            garmentBase64,
+            category: "upper_body",
+            cacheKey: sitterId ? `${sitterId}-${item.id}` : undefined,
+          }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error ?? "The try-on failed.");
+        setTryOns((t) => ({ ...t, [item.id]: j.imageUrl }));
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "The try-on failed.");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [bodyPhoto, sitterId],
+  );
+
+  return (
+    <section className="section" id="rail">
+      <div className="section-head">
+        <h2>The house rail</h2>
+        <span className="idx">One cut · fourteen colours · ranked for you</span>
+      </div>
+
+      <p className="lede" style={{ marginBottom: "2rem" }}>
+        This is draping itself: the same garment, over and over, in colours chosen to span warm to
+        cool and light to deep. Only the colour changes — so the ranking is entirely about you.
+      </p>
+
+      {err && (
+        <div className="notice" role="alert">
+          <strong>That didn&apos;t work</strong>
+          {err}
+        </div>
+      )}
+
+      <div className="gallery">
+        {ranked.map(({ item, score }) => {
+          const shown = tryOns[item.id];
+          return (
+            <div key={item.id} className="exhibit" style={{ cursor: "default" }}>
+              <div className="frame">
+                <img src={shown ?? item.thumb} alt={item.title} />
+              </div>
+              <div className="label">
+                <div className="label-row">
+                  <span className="title">{item.title}</span>
+                  <span className="score">{score.score.toFixed(1)}</span>
+                </div>
+                <span className="meta">
+                  {item.hex} · {score.verdict} · ΔE {score.deltaE.toFixed(0)}
+                </span>
+                {shown && <span className="meta">Hung on the sitter · YouCam VTO</span>}
+                {bodyPhoto && !shown && (
+                  <button
+                    className="ghost"
+                    style={{ marginTop: "0.6rem", width: "100%" }}
+                    disabled={busyId === item.id}
+                    onClick={() => hang(item)}
+                  >
+                    {busyId === item.id ? (
+                      <>
+                        <span className="spinner" />
+                        Hanging
+                      </>
+                    ) : (
+                      "Hang it on me · 2 units"
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function TheGallery({
   scan,
   bodyPhoto,
@@ -664,9 +793,11 @@ function TheGallery({
   return (
     <section className="section" id="gallery">
       <div className="section-head">
-        <h2>The gallery</h2>
+        <h2>From the collection</h2>
         <span className="idx">
-          {ranked.length ? `${ranked.length} pieces · hung best first` : "Ranked for your palette"}
+          {ranked.length
+            ? `${ranked.length} YouCam pieces · hung best first`
+            : "Ranked for your palette"}
         </span>
       </div>
 

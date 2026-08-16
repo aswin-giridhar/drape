@@ -33,6 +33,15 @@ get none of that, so they guess, and colour is a leading reason clothes come bac
    redness penalty. The score comes with reasons, not just a number.
 4. **Proves it.** YouCam's AI Clothes Virtual Try-On hangs the garment on the person's own body.
 
+### The house rail
+
+The clearest demonstration is the **house rail**: one garment, fourteen colours spanning warm to
+cool and light to deep. Nothing changes but the colour, so the ranking is entirely about the
+person. For the sitter in the demo — measured as True Spring — it ranks Marigold 8.9 and Camel 7.2
+at the top, and Charcoal, Slate and Fuchsia at the bottom. That is textbook warm-clear colour
+theory, arrived at purely from measurement, and any one of them can be rendered on her in about
+15 seconds.
+
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.
 

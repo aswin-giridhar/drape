@@ -1,0 +1,100 @@
+[
+  {
+    "id": "rail_marigold",
+    "title": "Marigold",
+    "hex": "#E8962D",
+    "thumb": "/rail/marigold.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_coral",
+    "title": "Coral",
+    "hex": "#E96E54",
+    "thumb": "/rail/coral.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_moss",
+    "title": "Moss",
+    "hex": "#606C38",
+    "thumb": "/rail/moss.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_camel",
+    "title": "Camel",
+    "hex": "#C19A6B",
+    "thumb": "/rail/camel.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_ivory",
+    "title": "Ivory",
+    "hex": "#F0EAD6",
+    "thumb": "/rail/ivory.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_rust",
+    "title": "Rust",
+    "hex": "#AA5528",
+    "thumb": "/rail/rust.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_sage",
+    "title": "Sage",
+    "hex": "#A3B18A",
+    "thumb": "/rail/sage.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_powder-blue",
+    "title": "Powder blue",
+    "hex": "#A8CADE",
+    "thumb": "/rail/powder-blue.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_slate",
+    "title": "Slate",
+    "hex": "#5A6E82",
+    "thumb": "/rail/slate.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_dusty-rose",
+    "title": "Dusty rose",
+    "hex": "#C08497",
+    "thumb": "/rail/dusty-rose.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_petrol",
+    "title": "Petrol",
+    "hex": "#144C5C",
+    "thumb": "/rail/petrol.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_charcoal",
+    "title": "Charcoal",
+    "hex": "#34363A",
+    "thumb": "/rail/charcoal.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_fuchsia",
+    "title": "Fuchsia",
+    "hex": "#C62C80",
+    "thumb": "/rail/fuchsia.jpg",
+    "category": "House rail"
+  },
+  {
+    "id": "rail_ice-lilac",
+    "title": "Ice lilac",
+    "hex": "#CDB4DB",
+    "thumb": "/rail/ice-lilac.jpg",
+    "category": "House rail"
+  }
+]
