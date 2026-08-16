@@ -47,6 +47,20 @@ const SITTERS: Sitter[] = [
     bodyPhoto: "/models/person_b.jpg",
     preset: "/presets/person_b.json",
   },
+  {
+    id: "person_c",
+    name: "Sitting no. 2",
+    facePhoto: "/models/person_c_face.jpg",
+    bodyPhoto: "/models/person_c.jpg",
+    preset: "/presets/person_c.json",
+  },
+  {
+    id: "person_a",
+    name: "Sitting no. 3",
+    facePhoto: "/models/person_a_face.jpg",
+    bodyPhoto: "/models/person_a.jpg",
+    preset: "/presets/person_a.json",
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -302,7 +316,7 @@ function TheSitting({
           </button>
         ))}
 
-        <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+        <div style={{ gridColumn: "span 2", minWidth: 0, gridRow: "span 1" }}>
           <div
             style={{
               border: "1px solid var(--ink)",

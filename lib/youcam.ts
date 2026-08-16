@@ -343,7 +343,14 @@ export interface ToneResult {
  * for a subject with abundant dark brown hair. Callers must cross-check it.
  */
 export async function analyseTone(fileId: string): Promise<ToneResult> {
-  const r = await runTask("skin-tone-analysis", { src_file_id: fileId });
+  const r = await runTask("skin-tone-analysis", {
+    src_file_id: fileId,
+    // The default is "high", which rejects ordinary photographs of people
+    // standing naturally — measured on two of three stock models. "flexible"
+    // accepts them; the face-quality block in the response still reports how
+    // good the shot actually was.
+    face_angle_strictness_level: "flexible",
+  });
   const c = r.results.color ?? {};
   return {
     skinHex: c.skin_color,

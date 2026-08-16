@@ -35,7 +35,15 @@ export interface FullProfile {
  * background rather than hair. We cannot prove which happened, so we flag it
  * instead of guessing.
  */
-export function hairColourLooksWrong(hairHex: string): boolean {
+/**
+ * Used when the API omits hair colour entirely (it does, for some subjects) or
+ * returns something implausible. Deliberately mid-dark and fully neutral so it
+ * biases the contrast estimate as little as possible.
+ */
+const HAIR_FALLBACK = "#3A3A3A";
+
+export function hairColourLooksWrong(hairHex?: string): boolean {
+  if (!hairHex) return true;
   try {
     const lch = labToLch(hexToLab(hairHex));
     // Very light AND very desaturated == almost certainly background bleed.
@@ -54,11 +62,17 @@ export function assembleProfile(
 
   let hairHex = hairOverride ?? tone.hairHex;
   if (!hairOverride && hairColourLooksWrong(tone.hairHex)) {
+    // Never let a missing or implausible reading crash the profile, and never
+    // let it pass as measured either.
+    hairHex = HAIR_FALLBACK;
     warnings.push({
       field: "hairHex",
-      message:
-        `We read your hair as ${tone.hairName ?? tone.hairHex}, but that looks like it may have ` +
-        `picked up the background. Please confirm — hair colour strongly affects your season.`,
+      message: tone.hairHex
+        ? `We read your hair as ${tone.hairName ?? tone.hairHex}, but that looks like it may have ` +
+          `picked up the background. Your contrast is estimated until you confirm it — hair colour ` +
+          `strongly affects your season.`
+        : `The analyser didn't return a hair colour for this photograph, so your contrast is ` +
+          `estimated rather than measured. Confirming it will sharpen the result.`,
       needsConfirmation: true,
     });
   }

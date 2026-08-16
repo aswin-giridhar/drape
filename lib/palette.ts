@@ -226,6 +226,18 @@ export interface GarmentScore {
  * degrees but shifts lightness and chroma more, so hue-driven signals carry
  * more weight than lightness-driven ones.
  */
+/**
+ * How warm a hue reads, from -1 (cool) to +1 (warm).
+ * Peaks around 60 degrees in Lab hue — the orange/gold family — and bottoms out
+ * near 240, the blue family.
+ */
+function hueWarmth(hueDeg: number, chroma: number): number {
+  const raw = Math.cos(((hueDeg - 60) * Math.PI) / 180);
+  // A near-neutral has no temperature to speak of, so fade the signal out.
+  const strength = Math.min(1, chroma / 30);
+  return raw * strength;
+}
+
 export function scoreGarment(garmentHex: string, p: ColourProfile): GarmentScore {
   const g = hexToLab(garmentHex);
   const gl = labToLch(g);
@@ -242,8 +254,11 @@ export function scoreGarment(garmentHex: string, p: ColourProfile): GarmentScore
       nearest = hex;
     }
   }
-  // dE 0 -> 10, dE 40+ -> 0
-  let score = 10 * Math.max(0, 1 - best / 40);
+
+  // Exponential decay rather than a clipped line: this stays strictly monotonic
+  // in deltaE and never reaches exactly zero, so distinct colours keep distinct
+  // scores instead of piling up on a clamp.
+  let score = 10 * Math.exp(-best / 24);
 
   if (best < 12) {
     reasons.push(`Sits right inside your ${match.season.name} palette (ΔE ${best.toFixed(1)}).`);
@@ -253,25 +268,44 @@ export function scoreGarment(garmentHex: string, p: ColourProfile): GarmentScore
     reasons.push(`Far from every ${match.season.name} shade (ΔE ${best.toFixed(1)}).`);
   }
 
-  // 2. Explicit clash with the season's avoid list.
+  // Penalties are MULTIPLICATIVE. Subtracting them lets a clamp collapse several
+  // genuinely different colours onto the same number; scaling preserves order.
+
+  // 2. Temperature. Carried explicitly here, not just implicitly through deltaE —
+  //    otherwise a cool shade can rank highly for a warm season purely on distance.
+  const warmth = hueWarmth(gl.h, gl.C);
+  const wanted = Math.max(-1, Math.min(1, (p.undertoneRatio - 1.32) / 0.35));
+  const tempMiss = Math.abs(wanted - warmth) / 2; // 0 = aligned, 1 = opposite
+  score *= 1 - 0.45 * tempMiss;
+  if (tempMiss > 0.55) {
+    reasons.push(
+      warmth < wanted
+        ? "Runs cooler than your colouring; it will sit slightly apart from your skin."
+        : "Runs warmer than your colouring; it will pull against your skin.",
+    );
+  } else if (tempMiss < 0.2 && gl.C > 20) {
+    reasons.push(`Temperature matches your ${p.undertone} colouring.`);
+  }
+
+  // 3. Explicit clash with the season's avoid list.
   let worstAvoid = Infinity;
   for (const hex of match.season.avoid) {
     worstAvoid = Math.min(worstAvoid, deltaE2000(g, hexToLab(hex)));
   }
   if (worstAvoid < 14) {
-    score -= 2.5;
+    score *= 0.55;
     reasons.push("Close to a shade that typically drains your colouring.");
   }
 
-  // 3. Contrast fit - does the garment/skin lightness gap match the user's own?
+  // 4. Contrast fit — does the garment/skin lightness gap match the user's own?
   const gap = Math.abs(g.L - p.skinLab.L);
   const wants = p.contrast === "high" ? 45 : p.contrast === "medium" ? 28 : 14;
   const miss = Math.abs(gap - wants);
   if (miss < 12) {
-    score += 0.8;
+    score *= 1.1;
     reasons.push(`Contrast suits you — you carry ${p.contrast} contrast naturally.`);
   } else if (miss > 30) {
-    score -= 0.8;
+    score *= 0.85;
     reasons.push(
       gap > wants
         ? "Stronger contrast than your colouring carries; it may wear you."
@@ -279,21 +313,21 @@ export function scoreGarment(garmentHex: string, p: ColourProfile): GarmentScore
     );
   }
 
-  // 4. Redness. rednessRaw is LOW when redness is HIGH (it is a "good skin" score).
+  // 5. Redness. rednessRaw is LOW when redness is HIGH (it is a "good skin" score).
   //    Hues in the red/orange band sit next to facial redness and amplify it.
   if (p.rednessRaw !== undefined && p.rednessRaw < 80) {
     const nearRed = Math.abs(hueDelta(gl.h, 25)) < 35 && gl.C > 25;
     if (nearRed) {
-      score -= 1.5;
+      score *= 0.7;
       reasons.push(
         `Your measured redness is elevated (${p.rednessRaw.toFixed(0)}/100); this hue sits beside it and will emphasise it.`,
       );
     }
   }
 
-  score = Math.max(0, Math.min(10, score));
+  score = Math.max(0.1, Math.min(10, score));
   const verdict: GarmentScore["verdict"] =
-    score >= 7.5 ? "great" : score >= 5.5 ? "good" : score >= 3.5 ? "risky" : "avoid";
+    score >= 7 ? "great" : score >= 5 ? "good" : score >= 3 ? "risky" : "avoid";
 
   return { score, verdict, reasons, nearestPaletteHex: nearest, deltaE: best };
 }

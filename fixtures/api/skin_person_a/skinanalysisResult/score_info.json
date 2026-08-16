@@ -1,0 +1,79 @@
+{
+  "oiliness": {
+    "raw_score": 99.84872436523438,
+    "ui_score": 99,
+    "output_mask_name": "oiliness_output.png"
+  },
+  "texture": {
+    "raw_score": 78.90149354934692,
+    "ui_score": 80,
+    "output_mask_name": "texture_output.png"
+  },
+  "redness": {
+    "raw_score": 75.68507385253906,
+    "ui_score": 79,
+    "output_mask_name": "redness_output.png"
+  },
+  "age_spot": {
+    "raw_score": 84.40257263183594,
+    "ui_score": 77,
+    "output_mask_name": "age_spot_output.png"
+  },
+  "moisture": {
+    "raw_score": 61.575305461883545,
+    "ui_score": 74,
+    "output_mask_name": "moisture_output.png"
+  },
+  "radiance": {
+    "raw_score": 75.7770836353302,
+    "ui_score": 79,
+    "output_mask_name": "radiance_output.png"
+  },
+  "pore": {
+    "raw_score": 61.31160259246826,
+    "ui_score": 72,
+    "output_mask_name": "pore_output.png"
+  },
+  "wrinkle": {
+    "raw_score": 96.09826803207397,
+    "ui_score": 92,
+    "output_mask_name": "wrinkle_output.png"
+  },
+  "acne": {
+    "raw_score": 100.0,
+    "ui_score": 99,
+    "output_mask_name": "acne_output.png"
+  },
+  "eye_bag": {
+    "raw_score": 74.57647323608398,
+    "ui_score": 78,
+    "output_mask_name": "eye_bag_output.png"
+  },
+  "dark_circle_v2": {
+    "raw_score": 91.69378876686096,
+    "ui_score": 83,
+    "output_mask_name": "dark_circle_v2_output.png"
+  },
+  "firmness": {
+    "raw_score": 68.6827301979065,
+    "ui_score": 76,
+    "output_mask_name": "firmness_output.png"
+  },
+  "droopy_lower_eyelid": {
+    "raw_score": 76.44694447517395,
+    "ui_score": 79,
+    "output_mask_name": "droopy_lower_eyelid_output.png"
+  },
+  "droopy_upper_eyelid": {
+    "raw_score": 79.10010814666748,
+    "ui_score": 80,
+    "output_mask_name": "droopy_upper_eyelid_output.png"
+  },
+  "all": {
+    "score": 81.92857142857143
+  },
+  "skin_age": 31,
+  "resize_image": {
+    "image_name": "resize_image.jpg"
+  }
+}

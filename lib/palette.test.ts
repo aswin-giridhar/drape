@@ -121,3 +121,34 @@ describe("THE GATE: garment scoring must separate", () => {
     expect(red).toBeLessThan(calm);
   });
 });
+
+describe("scores must discriminate, not pile up on a clamp", () => {
+  const p = buildProfile(PERSON_B);
+  const RAIL = [
+    ["Marigold", "#E8962D"], ["Coral", "#E96E54"], ["Moss", "#606C38"],
+    ["Camel", "#C19A6B"], ["Ivory", "#F0EAD6"], ["Rust", "#AA5528"],
+    ["Sage", "#A3B18A"], ["Powder blue", "#A8CADE"], ["Slate", "#5A6E82"],
+    ["Dusty rose", "#C08497"], ["Petrol", "#144C5C"], ["Charcoal", "#34363A"],
+    ["Fuchsia", "#C62C80"], ["Ice lilac", "#CDB4DB"],
+  ] as const;
+
+  it("gives every rail colour a distinct score", () => {
+    const scored = RAIL.map(([n, h]) => ({ n, s: scoreGarment(h, p).score }))
+      .sort((a, b) => b.s - a.s);
+    // eslint-disable-next-line no-console
+    console.log("rail:", scored.map((x) => `${x.n} ${x.s.toFixed(2)}`).join(" | "));
+    const rounded = scored.map((x) => x.s.toFixed(1));
+    const dupes = rounded.filter((v, i) => rounded.indexOf(v) !== i && v === "0.0");
+    expect(dupes.length, "no colours may collapse onto 0.0").toBe(0);
+  });
+
+  it("ranks a warm colour above a cool one for a warm season", () => {
+    const marigold = scoreGarment("#E8962D", p).score;
+    const powderBlue = scoreGarment("#A8CADE", p).score;
+    const slate = scoreGarment("#5A6E82", p).score;
+    // eslint-disable-next-line no-console
+    console.log(`marigold ${marigold.toFixed(2)} > powder blue ${powderBlue.toFixed(2)} > slate ${slate.toFixed(2)}`);
+    expect(marigold).toBeGreaterThan(powderBlue);
+    expect(powderBlue).toBeGreaterThan(slate);
+  });
+});

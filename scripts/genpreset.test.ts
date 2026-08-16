@@ -7,19 +7,33 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { assembleProfile } from "../lib/profile";
 import type { SkinReport, ConcernScore } from "../lib/skinzip";
 import type { ToneResult } from "../lib/youcam";
 
 const ROOT = path.resolve(__dirname, "..");
-const SKIN_DIR = path.join(ROOT, "fixtures/api/skin_result/skinanalysisResult");
+const API = path.join(ROOT, "fixtures/api");
 
-/** person_b's real hair is dark brown; the API returned "#FAF0BE (Blonde)". */
-const HAIR_CORRECTIONS: Record<string, string> = { person_b: "#3A2A22" };
+interface SitterSpec {
+  id: string;
+  toneFile: string;
+  skinDir: string;
+  /** Set only where the API's hair reading is demonstrably wrong. */
+  hairOverride?: string;
+}
 
-function readSkinReport(): SkinReport {
-  const info = JSON.parse(fs.readFileSync(path.join(SKIN_DIR, "score_info.json"), "utf8"));
+const SITTERS: SitterSpec[] = [
+  // The tone API returned "#FAF0BE (Blonde)" for a subject with clearly dark
+  // brown hair — see the spec, section 2, rule 8.
+  { id: "person_b", toneFile: "tone_b.json", skinDir: "skin_result", hairOverride: "#3A2A22" },
+  { id: "person_a", toneFile: "tone_person_a.json", skinDir: "skin_person_a" },
+  { id: "person_c", toneFile: "tone_person_c.json", skinDir: "skin_person_c" },
+];
+
+function readSkinReport(dir: string): SkinReport {
+  const base = path.join(API, dir, "skinanalysisResult");
+  const info = JSON.parse(fs.readFileSync(path.join(base, "score_info.json"), "utf8"));
   const concerns: ConcernScore[] = [];
   const masks: Record<string, string> = {};
 
@@ -32,10 +46,10 @@ function readSkinReport(): SkinReport {
         ui: value.ui_score,
         maskName: value.output_mask_name,
       });
-      // Only the redness mask is shipped: it is the concern that actually feeds
-      // the garment advice, so it earns its bytes. Carrying all 14 pushed the
-      // preset past 1MB for images nothing renders.
-      const p = path.join(SKIN_DIR, value.output_mask_name ?? "");
+      // Only the redness mask is shipped: it is the concern that feeds the
+      // garment advice, so it earns its bytes. All fourteen pushed the preset
+      // past 1MB for images nothing renders.
+      const p = path.join(base, value.output_mask_name ?? "");
       if (key === "redness" && value.output_mask_name && fs.existsSync(p)) {
         masks[key] = `data:image/png;base64,${fs.readFileSync(p).toString("base64")}`;
       }
@@ -47,60 +61,64 @@ function readSkinReport(): SkinReport {
     overall: info?.all?.score ?? 0,
     skinAge: info?.skin_age,
     masks,
-    normalisedFace: undefined, // the model's own photo is shown instead
+    normalisedFace: undefined, // the sitter's own photograph is shown instead
   };
 }
 
-it("writes the person_b preset", () => {
-  const toneRaw = JSON.parse(
-    fs.readFileSync(path.join(ROOT, "fixtures/api/tone_b.json"), "utf8"),
-  );
-  const c = toneRaw.data.results.color;
-  const tone: ToneResult = {
-    skinHex: c.skin_color,
-    hairHex: c.hair_color,
-    hairName: c.hair_color_name,
-    eyeHex: c.eye_color,
-    eyeName: c.eye_color_name,
-    lipHex: c.lip_color,
-    eyebrowHex: c.eyebrow_color,
-    faceQuality: toneRaw.data.results.face_quality,
-  };
+describe("presets", () => {
+  for (const spec of SITTERS) {
+    it(`writes the ${spec.id} preset`, () => {
+      const raw = JSON.parse(fs.readFileSync(path.join(API, spec.toneFile), "utf8"));
+      const c = raw.data.results.color;
+      const tone: ToneResult = {
+        skinHex: c.skin_color,
+        hairHex: c.hair_color,
+        hairName: c.hair_color_name,
+        eyeHex: c.eye_color,
+        eyeName: c.eye_color_name,
+        lipHex: c.lip_color,
+        eyebrowHex: c.eyebrow_color,
+        faceQuality: raw.data.results.face_quality,
+      };
 
-  const skin = readSkinReport();
-  const full = assembleProfile(tone, skin, HAIR_CORRECTIONS.person_b);
+      const skin = readSkinReport(spec.skinDir);
+      const full = assembleProfile(tone, skin, spec.hairOverride);
 
-  const payload = {
-    profile: full.profile,
-    season: {
-      name: full.season.season.name,
-      blurb: full.season.season.blurb,
-      best: full.season.season.best,
-      avoid: full.season.season.avoid,
-      runnerUp: full.season.runnerUp.name,
-      confidence: full.season.confidence,
-    },
-    skin: {
-      concerns: full.skin!.concerns,
-      overall: full.skin!.overall,
-      skinAge: full.skin!.skinAge,
-      masks: full.skin!.masks,
-      normalisedFace: full.skin!.normalisedFace,
-    },
-    tone: full.tone,
-    warnings: full.warnings,
-  };
+      const payload = {
+        profile: full.profile,
+        season: {
+          name: full.season.season.name,
+          blurb: full.season.season.blurb,
+          best: full.season.season.best,
+          avoid: full.season.season.avoid,
+          runnerUp: full.season.runnerUp.name,
+          confidence: full.season.confidence,
+        },
+        skin: {
+          concerns: full.skin!.concerns,
+          overall: full.skin!.overall,
+          skinAge: full.skin!.skinAge,
+          masks: full.skin!.masks,
+          normalisedFace: full.skin!.normalisedFace,
+        },
+        tone: full.tone,
+        warnings: full.warnings,
+      };
 
-  const out = path.join(ROOT, "public/presets/person_b.json");
-  fs.mkdirSync(path.dirname(out), { recursive: true });
-  fs.writeFileSync(out, JSON.stringify(payload));
+      const out = path.join(ROOT, `public/presets/${spec.id}.json`);
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, JSON.stringify(payload));
 
-  // eslint-disable-next-line no-console
-  console.log(
-    `person_b preset -> ${full.season.season.name}`,
-    `| ${full.skin!.concerns.length} concerns | ${(fs.statSync(out).size / 1024).toFixed(0)}KB`,
-  );
+      // eslint-disable-next-line no-console
+      console.log(
+        `${spec.id} -> ${full.season.season.name} (runner-up ${full.season.runnerUp.name})`,
+        `| skin ${full.profile.skinHex} ITA ${full.profile.ita.toFixed(1)}`,
+        `${full.profile.undertone} ${full.profile.contrast}-contrast`,
+        `| ${full.warnings.length} warning(s) | ${(fs.statSync(out).size / 1024).toFixed(0)}KB`,
+      );
 
-  expect(payload.season.name).toBeTruthy();
-  expect(payload.skin.concerns.length).toBe(14);
+      expect(payload.season.name).toBeTruthy();
+      expect(payload.skin.concerns.length).toBe(14);
+    });
+  }
 });
