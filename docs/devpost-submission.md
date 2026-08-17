@@ -161,6 +161,23 @@ this submission and in the README.
 
 The category is crowded. Trustworthy measurement in it is not.
 
+### A limitation we are publishing rather than papering over
+
+Contrast is measured and printed on the card, and it does **not** drive the season.
+Two of our three sitters differ by 20 points of hair-to-skin lightness contrast and
+both classify as True Spring at high confidence, because the classifier weights
+temperature, depth and skin chroma only.
+
+We tried to fix it before the deadline by deriving a contrast coordinate per season
+from that season's own palette, then sweeping the weight. It failed on both counts:
+the derivation was contaminated by an unrelated palette edit made hours earlier, and
+no weight improved all three sitters — the third only reaches a plausible season at a
+weight that has already pushed the second off hers. A constant has to be stable in a
+neighbourhood, not merely different at two points.
+
+So the defect is documented and the fix is not shipped. That is the same decision we
+made about the skin-score claim, for the same reason.
+
 ### What we learned
 
 That the interesting work sits between the two APIs, not inside either one. YouCam

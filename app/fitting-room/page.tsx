@@ -5,6 +5,7 @@ import { extractGarmentColour } from "@/lib/garment";
 import { measureGarmentGeometry } from "@/lib/geometry";
 import { describeGarment, type Description, type GarmentGeometry } from "@/lib/describe";
 import { buildProfile, type ColourProfile } from "@/lib/palette";
+import { useSpeech } from "@/lib/useSpeech";
 import "./fitting-room.css";
 
 /**
@@ -31,9 +32,9 @@ interface Wearer {
 }
 
 const WEARERS: Wearer[] = [
-  { id: "person_b", name: "Wearer one", bodyPhoto: "/models/person_b.jpg", preset: "/presets/person_b.json" },
-  { id: "person_c", name: "Wearer two", bodyPhoto: "/models/person_c.jpg", preset: "/presets/person_c.json" },
-  { id: "person_a", name: "Wearer three", bodyPhoto: "/models/person_a.jpg", preset: "/presets/person_a.json" },
+  { id: "person_b", name: "Sitting no. 1", bodyPhoto: "/models/person_b.jpg", preset: "/presets/person_b.json" },
+  { id: "person_c", name: "Sitting no. 2", bodyPhoto: "/models/person_c.jpg", preset: "/presets/person_c.json" },
+  { id: "person_a", name: "Sitting no. 3", bodyPhoto: "/models/person_a.jpg", preset: "/presets/person_a.json" },
 ];
 
 export default function FittingRoom() {
@@ -44,25 +45,20 @@ export default function FittingRoom() {
   const [description, setDescription] = useState<Description | null>(null);
   const [render, setRender] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [speechOn, setSpeechOn] = useState(true);
   const resultRef = useRef<HTMLDivElement>(null);
+  // The shared hook, not a second copy: the voice preference is global and
+  // persisted, so someone who needs it on gets it on every surface. This page
+  // used to keep its own flag, which meant the two disagreed.
+  const voice = useSpeech();
 
   /** Speak, and always mirror to the live region so nothing is audio-only. */
   const announce = useCallback(
     (text: string, speak = false) => {
       setStatus(text);
-      if (speak && speechOn && typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = 1.0;
-        u.pitch = 1.0;
-        window.speechSynthesis.speak(u);
-      }
+      if (speak) voice.say(text);
     },
-    [speechOn],
+    [voice],
   );
-
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
   const chooseWearer = useCallback(
     async (w: Wearer) => {
@@ -202,11 +198,11 @@ export default function FittingRoom() {
           <h2 id="step3">Step 3. What it looks like on you</h2>
 
           <div className="controls">
-            <button onClick={() => setSpeechOn((s) => !s)} aria-pressed={speechOn}>
-              {speechOn ? "Speech is on" : "Speech is off"}
+            <button onClick={voice.toggle} aria-pressed={voice.on}>
+              {voice.on ? "Speech is on" : "Speech is off"}
             </button>
             {description && (
-              <button onClick={() => announce(description.spoken, true)} disabled={!speechOn}>
+              <button onClick={() => voice.say(description.spoken, true)}>
                 Read the description again
               </button>
             )}

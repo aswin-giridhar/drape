@@ -287,6 +287,18 @@ instrument-read and what was inferred.
   season when someone sits near a boundary.
 - Try-on renders preserve hue to within about 5°, but lightness and chroma shift more. Stated in
   the interface rather than hidden.
+- **Contrast is measured and shown, but does not drive the season.** `buildProfile`
+  computes hair-to-skin lightness spread (printed as ΔL\*), while `classifySeason`
+  weights only temperature, depth and skin chroma. Two of our sitters differ by 20
+  points of contrast and both classify as True Spring at high confidence, which is
+  the predictable result. We tried to fix it inside the hackathon by deriving a
+  contrast coordinate per season from that season's own palette range, then sweeping
+  its weight. It did not validate: the derivation was contaminated (we had edited two
+  palettes hours earlier for an unrelated reason), and no weight improved all three
+  sitters — sitter three only reaches a plausible season at a weight that has already
+  knocked sitter two off hers. A constant has to be stable in a neighbourhood, not
+  merely different at two points, so we are shipping the honest limitation rather than
+  an unvalidated fix.
 - Hair colour from the tone API is unreliable and is treated as such.
 - Garment colour extraction judges a patterned item on its dominant colour, and says so.
 
