@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "petrol",
+    "title": "Petrol",
+    "hex": "#0F4C5C",
+    "thumb": "/shoes/petrol.jpg",
+    "render": "/renders/shoes/petrol.jpg"
+  },
+  {
+    "slug": "rust",
+    "title": "Rust",
+    "hex": "#B5551D",
+    "thumb": "/shoes/rust.jpg",
+    "render": "/renders/shoes/rust.jpg"
+  },
+  {
+    "slug": "charcoal",
+    "title": "Charcoal",
+    "hex": "#34363A",
+    "thumb": "/shoes/charcoal.jpg",
+    "render": "/renders/shoes/charcoal.jpg"
+  },
+  {
+    "slug": "cream",
+    "title": "Cream",
+    "hex": "#F2E3C6",
+    "thumb": "/shoes/cream.jpg",
+    "render": "/renders/shoes/cream.jpg"
+  }
+]

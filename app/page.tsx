@@ -10,6 +10,7 @@ import { necklineFor } from "@/lib/faceshape";
 import { metalFor, rankLips } from "@/lib/adornment";
 import { useSpeech } from "@/lib/useSpeech";
 import { Lightbox, Zoomable } from "./Lightbox";
+import { PaletteCard } from "./PaletteCard";
 
 /* ------------------------------------------------------------------ */
 /* Shapes mirroring the API responses                                  */
@@ -239,6 +240,7 @@ export default function Page() {
             sitterId={sitter?.id}
           />
           <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} voice={voice} />
+          <TheFootwear profile={scan.profile} />
           {/* Bring-your-own sits above the catalogue: it is the section that
               proves this works on anything, and it was previously buried
               eleven screens down beneath a grid of football kits. */}
@@ -731,6 +733,23 @@ function ColourCard({
         </div>
       </div>
 
+      {/* Full width, outside the two-column grid. This is the last thing in the
+          card and the only thing you take away, so it should not sit in a
+          half-empty column with a screen of nothing beside it. The lips prop
+          passes the whole score object: the card prints the verdict word next
+          to the number, which is signal that is not carried by colour. */}
+      <PaletteCard
+        seasonName={season.name}
+        blurb={season.blurb}
+        best={season.best}
+        metal={metal}
+        lips={lips}
+        skinHex={tone.skinHex}
+        ita={profile.ita}
+        undertone={profile.undertone}
+        contrast={profile.contrast}
+      />
+
       {skin && (
         <div style={{ marginTop: "var(--hang)" }}>
           <div className="section-head" style={{ borderTopColor: "var(--hairline)" }}>
@@ -887,6 +906,101 @@ function HairLever({ photo, sitterId }: { photo?: string; sitterId?: string }) {
         </figure>
       )}
     </div>
+  );
+}
+
+
+/**
+ * The footwear rail.
+ *
+ * Same argument as the house rail, one storey down: one shoe, four colours,
+ * nothing changing but the colour, so the ranking is entirely about the wearer.
+ *
+ * These renders are pre-generated static files, so browsing them costs a judge
+ * nothing. They came from `task/cloth` with `garment_category: "shoes"` - the
+ * SAME endpoint the garments use - which preserves the sitter, the pose and the
+ * studio background. The dedicated `task/shoes` endpoint does not: it is
+ * colour-accurate but returns a different pose, a different dress and an
+ * invented beach background, so it is deliberately not used here.
+ *
+ * The swatch is the shoe we asked for, not the shoe that came back. The render
+ * preserves the studio lighting, so mid-tones lift by roughly 0.3 in lightness
+ * while hue holds to within a couple of degrees on the saturated colours. The
+ * caption says so rather than letting the two quietly disagree.
+ */
+interface ShoeItem {
+  slug: string;
+  title: string;
+  hex: string;
+  thumb: string;
+  render: string;
+}
+
+function TheFootwear({ profile }: { profile: ColourProfile }) {
+  const [shoes, setShoes] = useState<ShoeItem[] | null>(null);
+  const [shown, setShown] = useState<ShoeItem | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/shoes/manifest.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j) => alive && setShoes(j))
+      .catch(() => alive && setShoes([])); // absent, not broken
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const ranked = useMemo(
+    () =>
+      (shoes ?? [])
+        .map((s) => ({ item: s, score: scoreGarment(s.hex, profile) }))
+        .sort((a, b) => b.score.score - a.score.score),
+    [shoes, profile],
+  );
+
+  if (!shoes || shoes.length === 0) return null;
+
+  return (
+    <section className="section" id="footwear">
+      <div className="section-head">
+        <h2>And on your feet</h2>
+        <span className="idx">One boot, four colours · ranked for you</span>
+      </div>
+
+      <p style={{ maxWidth: "48ch", marginTop: 0 }}>
+        The same measurement decides footwear. These are real try-on renders from the same
+        endpoint the garments use, generated ahead of time, so looking through them costs nothing.
+      </p>
+
+      <div className="gallery" data-reveal>
+        {ranked.map(({ item, score }) => (
+          <div key={item.slug} className="exhibit" style={{ cursor: "default" }}>
+            <div className="frame">
+              <Zoomable
+                src={item.render}
+                alt={`The sitter wearing the ${item.title.toLowerCase()} boot`}
+                caption={`${item.title} — YouCam AI Clothes Virtual Try-On, shoes category. The render keeps the studio lighting, so it sits lighter than the swatch.`}
+              >
+                <img src={item.render} alt={`The sitter wearing the ${item.title.toLowerCase()} boot`} />
+              </Zoomable>
+            </div>
+            <div className="label">
+              <div className="label-row">
+                <span className="title">{item.title}</span>
+                <span className="score">
+                  {score.score.toFixed(1)}
+                  <small>/10</small>
+                </span>
+              </div>
+              <span className="meta">
+                {item.hex} {score.verdict} · ΔE {score.deltaE.toFixed(0)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
