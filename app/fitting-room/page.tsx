@@ -6,6 +6,7 @@ import { measureGarmentGeometry } from "@/lib/geometry";
 import { describeGarment, type Description, type GarmentGeometry } from "@/lib/describe";
 import { buildProfile, type ColourProfile } from "@/lib/palette";
 import { useSpeech } from "@/lib/useSpeech";
+import { Zoomable } from "../Lightbox";
 import "./fitting-room.css";
 
 /**
@@ -234,7 +235,13 @@ export default function FittingRoom() {
 
           {render && (
             <figure className="render">
-              <img src={render} alt={description?.spoken ?? "The garment shown on the wearer"} />
+              <Zoomable
+                src={render}
+                alt={description?.spoken ?? "The garment shown on the wearer"}
+                caption={description?.spoken}
+              >
+                <img src={render} alt={description?.spoken ?? "The garment shown on the wearer"} />
+              </Zoomable>
               <figcaption>
                 The render is here so a sighted companion can check it against the description. It
                 is not needed to use this page.
