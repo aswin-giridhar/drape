@@ -29,8 +29,10 @@ were used, shows the project working on the device it was built for.
 > AC8973. Depth, thirty point two degrees on the ITA scale — the standard
 > dermatological measure. Undertone, warm. Contrast, medium.
 >
-> From those numbers, not from a guess, she's a True Spring. And the palette
-> hangs beside her face, the way a stylist would hold it.
+> From those numbers, not from a guess, she's a True Spring. The palette hangs
+> beside her face, the way a stylist would hold it. And underneath: her
+> necklines, gold over silver, and her lipsticks ranked — all from the same
+> measurement, no extra call.
 
 ---
 
@@ -58,13 +60,13 @@ on her body: charcoal → petrol → moss → ivory → marigold.
 **On screen:** press **Read aloud** and let the voice run a few seconds, then
 press **Turn it** on the plate and drag the garment round once.
 
-> Every garment is also described in words, and read aloud — because online
-> clothes shopping is built entirely on pictures, and not everyone gets one.
-> The same measurements become a sentence.
+> Every garment is described in words and read aloud, because online clothes
+> shopping is built entirely on pictures and not everyone gets one.
 >
-> And this is the flat product photograph, reconstructed as a solid you can
-> turn. One mesh, tinted from the same hex as the swatch, so the model and the
-> recommendation cannot disagree.
+> This is the flat product photograph, reconstructed as a solid you can turn.
+> One mesh, tinted from the same hex as the swatch, so the model and the
+> recommendation cannot disagree. And any render enlarges, because deciding
+> if something suits you means looking closely.
 
 ---
 
@@ -81,10 +83,9 @@ press **Turn it** on the plate and drag the garment round once.
 ### Beat 5 — a second sitter · 2:22–2:42 · 56 words
 **On screen:** back, open Sitting no. 2, scroll her scrub to the end.
 
-> Different person, same rail. She measures Dark Autumn — depth minus
-> forty-seven point five, low contrast. Now rust ranks top at nine point three
-> and marigold falls away. Same fourteen garments, completely different answer,
-> because the answer was never about the garments.
+> Different person, same rail. She measures Dark Autumn. Now rust ranks top at
+> nine point three and marigold falls away — same fourteen garments, completely
+> different answer, because the answer was never about the garments.
 
 ---
 
