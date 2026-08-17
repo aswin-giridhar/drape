@@ -127,7 +127,7 @@ must never look alike on a page whose whole claim is that it measured something.
 ## What we measured, rather than assumed
 
 Everything below was measured against the live API and cross-checked against the official docs.
-The full record is in [`docs/superpowers/specs/2026-08-16-drape-design.md`](docs/superpowers/specs/2026-08-16-drape-design.md).
+Every figure below was taken from the live API, not from the documentation.
 
 | Fact | Value |
 | --- | --- |
