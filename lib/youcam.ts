@@ -532,7 +532,11 @@ export async function listGarmentTemplates(nextToken?: string): Promise<{
   items: CatalogueItem[];
   nextToken?: string;
 }> {
-  const q = nextToken ? `?next_token=${encodeURIComponent(nextToken)}` : "";
+  // The RESPONSE field is `next_token`; the REQUEST parameter is
+  // `starting_token`. Sending the response's own name back returns HTTP 400, so
+  // paging silently failed and the catalogue could only ever show its first
+  // page - 20 garments out of 250 across 14 categories.
+  const q = nextToken ? `?starting_token=${encodeURIComponent(nextToken)}` : "";
   const d = await call<any>("GET", `/s2s/v2.0/task/template/cloth${q}`);
   return {
     items: (d?.data?.templates ?? []).map((t: any) => ({
