@@ -579,7 +579,7 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
               <span className="score">{profile.ita.toFixed(1)}°</span>
             </div>
             <span className="meta">
-              {profile.depth} · {profile.undertone} · ITA angle
+              {profile.depth}, {profile.undertone} · ITA angle
             </span>
             <span className="hint-inline">Hover a panel to hold that colour against the face</span>
           </div>
@@ -648,7 +648,7 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
           {neckline && (
             <div className="neckline">
               <p className="eyebrow" style={{ marginTop: "2rem" }}>
-                Necklines · conventional guidance, not measurement
+                Necklines &mdash; conventional guidance, not measurement
               </p>
               <p style={{ margin: "0 0 0.5rem", maxWidth: "40ch" }}>{neckline.advice}</p>
               <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", margin: 0 }}>
@@ -658,7 +658,6 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
           )}
 
           <div style={{ marginTop: "2.5rem" }}>
-            <p className="eyebrow">The verdict</p>
             <h3 className="display season">{season.name}</h3>
             <p style={{ margin: 0, color: "var(--graphite)", maxWidth: "40ch" }}>{season.blurb}</p>
             {season.confidence < 0.35 && (
@@ -668,10 +667,7 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
               </p>
             )}
 
-            <p className="eyebrow" style={{ marginTop: "2rem" }}>
-              Your palette
-            </p>
-            <ul className="swatches">
+            <ul className="swatches" style={{ marginTop: "2rem" }}>
               {season.best.map((hex) => (
                 <li key={hex} style={{ background: hex }} data-hex={hex.toUpperCase()} />
               ))}
@@ -1250,7 +1246,7 @@ function TheRail({
     <section className="section" id="rail">
       <div className="section-head">
         <h2>The house rail</h2>
-        <span className="idx">One cut · fourteen colours · ranked for you</span>
+        <span className="idx">One cut, fourteen colours · ranked for you</span>
       </div>
 
       <p className="lede" style={{ marginBottom: "2rem" }}>
@@ -1287,7 +1283,7 @@ function TheRail({
                     </span>
                   </span>
                   <span className="meta">
-                    {f.hex} · {f.score.verdict} · ΔE {f.score.deltaE.toFixed(0)}
+                    {f.hex} {f.score.verdict} · ΔE {f.score.deltaE.toFixed(0)}
                   </span>
                 </figcaption>
               </figure>
@@ -1316,7 +1312,7 @@ function TheRail({
                   </span>
                 </div>
                 <span className="meta">
-                  {item.hex} · {score.verdict} · ΔE {score.deltaE.toFixed(0)}
+                  {item.hex} {score.verdict} · ΔE {score.deltaE.toFixed(0)}
                 </span>
                 {shown && <span className="meta">Hung on the sitter · YouCam VTO</span>}
                 {bodyPhoto && !shown && (
@@ -1487,7 +1483,7 @@ function TheGallery({
                   <span className="score">{s.score.toFixed(1)}</span>
                 </div>
                 <span className="meta">
-                  {item.category} · {s.verdict} · ΔE {s.deltaE.toFixed(0)}
+                  {item.category} {s.verdict} · ΔE {s.deltaE.toFixed(0)}
                 </span>
                 {shown && <span className="meta">Hung on the sitter · YouCam VTO</span>}
                 {bodyPhoto && !shown && (
