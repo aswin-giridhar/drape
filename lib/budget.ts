@@ -51,6 +51,18 @@ export function noteSpend(cost: number): void {
   if (cache) cache.units = Math.max(0, cache.units - cost);
 }
 
+/**
+ * Give back an optimistic reservation when the task failed.
+ *
+ * Failed vendor tasks are not billed, so without this the local counter drifts
+ * down against a balance that never moved - and the floor trips early, showing
+ * "paused" when there is money left. The floor exists to keep a judge's live run
+ * possible; a floor that trips on phantom spend defeats its own purpose.
+ */
+export function refundSpend(cost: number): void {
+  if (cache) cache.units += cost;
+}
+
 export interface BudgetStatus {
   units: number;
   reserveFloor: number;
