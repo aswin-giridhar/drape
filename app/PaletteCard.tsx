@@ -42,17 +42,34 @@ const SERIF = "Georgia, 'Times New Roman', serif";
 const MONO = "ui-monospace, Menlo, Consolas, monospace";
 const SANS = "system-ui, -apple-system, 'Segoe UI', sans-serif";
 
+/*
+ * A lip score arrives either as a bare number or as the GarmentScore object
+ * the ranking engine actually produces (lib/adornment.ts LipSwatch). Accepting
+ * both keeps the call site honest — the page can pass what it already has,
+ * without a lossy .map() that throws the verdict away before we can print it.
+ */
+export type LipScore = number | { score: number; verdict: string };
+
 export type PaletteCardProps = {
   seasonName: string;
   blurb: string;
   best: string[];
   metal: { best: "gold" | "silver" | null; sentence: string; hex: string };
-  lips: { name: string; hex: string; score: number }[];
+  lips: { name: string; hex: string; score: LipScore }[];
   skinHex: string;
   ita: number;
   undertone: string;
   contrast: string;
 };
+
+function readScore(s: LipScore): { value: number; verdict: string | null } {
+  return typeof s === "number" ? { value: s, verdict: null } : { value: s.score, verdict: s.verdict };
+}
+
+/** 0-10 engine scores want one decimal; 0-1 similarity scores want two. */
+function formatScore(value: number): string {
+  return value > 1 ? value.toFixed(1) : value.toFixed(2);
+}
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -123,14 +140,19 @@ function wrapLines(
     }
   }
   if (lines.length < maxLines && line.length > 0) lines.push(line);
-  if (lines.length === maxLines && line.length > 0 && !lines.includes(line)) {
-    let last = lines[maxLines - 1];
-    while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) {
-      last = last.slice(0, -1);
-    }
-    lines[maxLines - 1] = `${last}…`;
-  }
-  return lines;
+  /*
+   * Truncate anything still over the measure. This catches both the dropped
+   * tail (words that never fitted) and the single-word-longer-than-the-column
+   * case, which the greedy loop is forced to accept whole.
+   */
+  const dropped = lines.length === maxLines && line.length > 0 && lines[lines.length - 1] !== line;
+  return lines.map((l, i) => {
+    const isLast = i === lines.length - 1;
+    if (ctx.measureText(l).width <= maxWidth && !(isLast && dropped)) return l;
+    let cut = l;
+    while (cut.length > 1 && ctx.measureText(`${cut}…`).width > maxWidth) cut = cut.slice(0, -1);
+    return `${cut}…`;
+  });
 }
 
 function rule(ctx: CanvasRenderingContext2D, y: number): void {
@@ -231,24 +253,24 @@ function paint(ctx: CanvasRenderingContext2D, p: PaletteCardProps): void {
 
   /* Metal. */
   label(ctx, "Metal", 700);
-  chip(ctx, p.metal.hex, MARGIN, 736, 60, 60);
+  chip(ctx, p.metal.hex, MARGIN, 734, 60, 60);
   ctx.fillStyle = INK;
-  ctx.font = `400 34px ${SERIF}`;
-  ctx.fillText(metalWord(p.metal.best), MARGIN + 84, 734);
-  ctx.fillStyle = "#5A5A5A";
-  ctx.font = `400 21px ${SANS}`;
-  const metalLines = wrapLines(ctx, p.metal.sentence, COL_W - 84, 1);
-  ctx.fillText(metalLines[0] ?? "", MARGIN + 84, 776);
+  ctx.font = `400 32px ${SERIF}`;
+  ctx.fillText(metalWord(p.metal.best), MARGIN + 84, 732);
   ctx.fillStyle = "#5A5A5A";
   ctx.font = `400 15px ${MONO}`;
-  ctx.fillText(p.metal.hex.toUpperCase(), MARGIN, 804);
+  ctx.fillText(p.metal.hex.toUpperCase(), MARGIN + 84, 774);
+  /* The sentence gets the full column, below the chip, so it is not squeezed. */
+  ctx.fillStyle = "#5A5A5A";
+  ctx.font = `400 20px ${SANS}`;
+  ctx.fillText(wrapLines(ctx, p.metal.sentence, COL_W, 1)[0] ?? "", MARGIN, 812);
 
-  rule(ctx, 836);
+  rule(ctx, 848);
 
   /* Lips, best first. Score printed so the ranking is never colour-only. */
-  label(ctx, "Lip colour", 864);
+  label(ctx, "Lip colour", 876);
   lips.forEach((lip, i) => {
-    const y = 904 + i * 78;
+    const y = 916 + i * 78;
     chip(ctx, lip.hex, MARGIN, y, 52, 52);
     ctx.fillStyle = INK;
     ctx.font = `400 25px ${SANS}`;
@@ -257,10 +279,17 @@ function paint(ctx: CanvasRenderingContext2D, p: PaletteCardProps): void {
     ctx.fillStyle = "#5A5A5A";
     ctx.font = `400 15px ${MONO}`;
     ctx.fillText(lip.hex.toUpperCase(), MARGIN + 76, y + 34);
-    const score = lip.score.toFixed(2);
+    const { value, verdict } = readScore(lip.score);
+    const score = formatScore(value);
     ctx.fillStyle = INK;
     ctx.font = `400 22px ${MONO}`;
-    ctx.fillText(score, RIGHT - ctx.measureText(score).width, y + 14);
+    ctx.fillText(score, RIGHT - ctx.measureText(score).width, y + 4);
+    if (verdict) {
+      ctx.fillStyle = PENCIL;
+      ctx.font = `400 14px ${MONO}`;
+      const vw = trackedWidth(ctx, verdict.toUpperCase(), 2);
+      drawTracked(ctx, verdict.toUpperCase(), RIGHT - vw, y + 36, 2);
+    }
   });
 
   rule(ctx, 1174);
@@ -298,9 +327,27 @@ export function PaletteCard(props: PaletteCardProps) {
   const render = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(typeof window === "undefined" ? 1 : window.devicePixelRatio || 1, 3);
-    canvas.width = Math.round(CARD_W * dpr);
-    canvas.height = Math.round(CARD_H * dpr);
+    /*
+     * Capped at 2. Mobile Safari refuses canvases past a dimension/area
+     * threshold and fails by returning a blank bitmap rather than throwing —
+     * exactly the failure that would ship a white PNG with no error anywhere.
+     * 2160x2880 stays well inside any limit I have seen quoted and is still
+     * far denser than a phone screen. (Cap chosen for margin, not measured
+     * here — I cannot drive iOS from this environment.)
+     */
+    const dpr = Math.min(typeof window === "undefined" ? 1 : window.devicePixelRatio || 1, 2);
+    /*
+     * Only resize when the size actually changed. Assigning canvas.width clears
+     * the bitmap even when the value is identical, and this effect re-runs on
+     * every parent render — including the two setStatus calls in download(),
+     * which would otherwise wipe the canvas mid-export.
+     */
+    const w = Math.round(CARD_W * dpr);
+    const h = Math.round(CARD_H * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -333,8 +380,12 @@ export function PaletteCard(props: PaletteCardProps) {
   const download = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setStatus("Preparing your card…");
     canvas.toBlob((blob) => {
+      /*
+       * A null blob is a real failure, not an empty result — say so rather
+       * than silently doing nothing, which is indistinguishable from a dead
+       * button.
+       */
       if (!blob) {
         setStatus("The card could not be rendered. Try again, or screenshot the preview.");
         return;
@@ -346,7 +397,13 @@ export function PaletteCard(props: PaletteCardProps) {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      /*
+       * Deferred a tick. Revoking in the same tick as the synthetic click can
+       * cancel the download in Safari and some Firefox builds — the blob
+       * navigation has not started yet when the URL is invalidated. Chrome
+       * tolerates it, so the bug only shows up where you are not testing.
+       */
+      setTimeout(() => URL.revokeObjectURL(url), 0);
       setStatus("Saved as a PNG to your downloads.");
     }, "image/png");
   }, [props.seasonName]);
@@ -414,11 +471,15 @@ export function PaletteCard(props: PaletteCardProps) {
         <dt>Lip colours, best first</dt>
         <dd>
           <ol>
-            {lips.map((lip, i) => (
-              <li key={`${lip.hex}-${i}`}>
-                {lip.name}, {lip.hex.toUpperCase()}, score {lip.score.toFixed(2)}
-              </li>
-            ))}
+            {lips.map((lip, i) => {
+              const { value, verdict } = readScore(lip.score);
+              return (
+                <li key={`${lip.hex}-${i}`}>
+                  {lip.name}, {lip.hex.toUpperCase()}, score {formatScore(value)}
+                  {verdict ? `, ${verdict}` : ""}
+                </li>
+              );
+            })}
           </ol>
         </dd>
         <dt>Measured</dt>
