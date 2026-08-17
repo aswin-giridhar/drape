@@ -217,6 +217,7 @@ portraits with `error_face_angle_upward`.
 | AI Skin Analysis | `POST /s2s/v2.0/task/skin-analysis` | 14 raw concern scores; redness feeds garment scoring |
 | AI Clothes Virtual Try-On | `POST /s2s/v2.0/task/cloth` | hangs garments on the subject |
 | Face Attribute Analysis | `POST /s2s/v2.0/task/face-attr-analysis` | face shape — drives neckline guidance |
+| AI Hair Colour | `POST /s2s/v2.0/task/hair-color` | 1 unit — shows the contrast axis changed |
 | Garment catalogue | `GET /s2s/v2.0/task/template/cloth` | the gallery, ranked by palette |
 | File upload | `POST /s2s/v2.0/file/{feature}` | presigned upload for every image |
 | Units | `GET /s2s/v1.0/client/credit` | live budget guard |
@@ -307,6 +308,28 @@ Measured values are set in monospace, interpretations in serif, so you can see a
 instrument-read and what was inferred.
 
 ---
+
+## What we probed and did not ship
+
+Three capabilities were measured against the live API and left out on purpose.
+Failed tasks cost nothing, so establishing this was close to free.
+
+- **`task/shoes` reinvents the scene.** It is colour-accurate (hue shift +1.7°),
+  but it returns a different pose, a different dress and a beach-sunset
+  background. That is a *different* failure from `task/scarf`, which broke colour
+  and kept nothing: shoes keeps the colour and discards the person. Both belong to
+  the same generative family (`bag`, `hat`, `scarf`, `shoes`).
+- **Footwear does work, through the endpoint we already use.** `task/cloth` accepts
+  `garment_category: "shoes"` for 2 units and preserves the sitter, the pose and
+  the studio background, with a measured hue shift of **+2.2°** — better than the
+  −4 to −5° we measure on upper-body garments. The rail extends to footwear with no
+  new colour risk; it needs garment photography, not engineering.
+- **The MCP servers are real and callable.** `mcp-api-01.makeupar.com/mcp/{beauty,
+  fashion,creators}` authenticate with the bare API key — no RSA exchange — and
+  expose 18 fashion and 46 beauty tools. But none of them answers *does this suit
+  me?*: the try-on tools take a reference image, not a colour, and the tone
+  analyser produces the profile rather than judging against it. The MCP layer buys
+  agent-callable rendering. The colour reasoning stays ours.
 
 ## Honest limitations
 

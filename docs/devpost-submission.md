@@ -219,9 +219,22 @@ rather than a colour-accurate try-on: given a marigold reference it returned a n
 patterned scarf and an invented street scene. Building on it would have broken the
 one guarantee this product makes, so it waits for a colour-faithful path.
 
+**Footwear, which is closer than we thought.** We assumed this needed a new
+endpoint. It does not: `task/cloth` already accepts `garment_category: "shoes"` for
+2 units and preserves the sitter, pose and background, with a measured hue shift of
++2.2° — better than the -4 to -5° we get on tops. The dedicated `task/shoes`
+endpoint is the one to avoid: colour-accurate but it returns a different pose,
+different dress and a beach-sunset background. What footwear needs is garment
+photography, not engineering.
+
 **An agentic surface via MCP.** YouCam ships MCP servers for beauty, fashion and
-creators. A styling agent that holds your measured profile and answers "does this
-work on me?" for anything you point at is the natural next form of this product.
+creators. We verified them on the wire rather than from the docs: the three servers
+authenticate with the bare API key, no RSA exchange, and expose 18 fashion and 46
+beauty tools. Notably **none of them answers "does this suit me?"** - the try-on
+tools take a reference image, not a colour, and the tone analyser produces a profile
+rather than judging against one. So MCP buys agent-callable rendering across the
+full accessory range, and the colour reasoning stays ours. That is the shape of the
+next version.
 
 **The wardrobe audit.** Photograph what you already own and find out what to keep,
 restyle, or let go.
