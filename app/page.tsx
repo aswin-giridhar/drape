@@ -659,6 +659,43 @@ function ColourCard({
             )}
           </dl>
 
+          <div style={{ marginTop: "2.5rem" }}>
+            <h3 className="display season">{season.name}</h3>
+            <p style={{ margin: 0, color: "var(--graphite)", maxWidth: "40ch" }}>{season.blurb}</p>
+            {season.confidence < 0.35 && (
+              <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", marginTop: "0.75rem" }}>
+                Close to {season.runnerUp} — confidence {season.confidence.toFixed(2)}. Colours
+                shared by both are safest.
+              </p>
+            )}
+
+            <ul className="swatches" style={{ marginTop: "2rem" }}>
+              {season.best.map((hex) => (
+                <li key={hex} style={{ background: hex }} data-hex={hex.toUpperCase()} />
+              ))}
+            </ul>
+          </div>
+
+          {/* Everything below is DERIVED from the season above, so it belongs
+              below it. Appending each new block to the end of the card had left
+              the headline answer sitting underneath three pieces of advice that
+              only make sense once you have read it. */}
+          {/* Shape is the one thing the face-attribute endpoint tells us that
+              nothing else on the platform does - its colour readings turned out
+              to be the same engine as the tone analyser. The advice itself is
+              convention rather than measurement, and says so. */}
+          {neckline && (
+            <div className="neckline">
+              <p className="eyebrow" style={{ marginTop: "2rem" }}>
+                Necklines &mdash; conventional guidance, not measurement
+              </p>
+              <p style={{ margin: "0 0 0.5rem", maxWidth: "40ch" }}>{neckline.advice}</p>
+              <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", margin: 0 }}>
+                {neckline.crewVerdict}
+              </p>
+            </div>
+          )}
+
           <div className="adorn">
             <p className="eyebrow" style={{ marginTop: "2rem" }}>
               Gold or silver
@@ -691,38 +728,6 @@ function ColourCard({
 
           <HairLever photo={portrait} sitterId={sitterId} />
 
-          {/* Shape is the one thing the face-attribute endpoint tells us that
-              nothing else on the platform does - its colour readings turned out
-              to be the same engine as the tone analyser. The advice itself is
-              convention rather than measurement, and says so. */}
-          {neckline && (
-            <div className="neckline">
-              <p className="eyebrow" style={{ marginTop: "2rem" }}>
-                Necklines &mdash; conventional guidance, not measurement
-              </p>
-              <p style={{ margin: "0 0 0.5rem", maxWidth: "40ch" }}>{neckline.advice}</p>
-              <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", margin: 0 }}>
-                {neckline.crewVerdict}
-              </p>
-            </div>
-          )}
-
-          <div style={{ marginTop: "2.5rem" }}>
-            <h3 className="display season">{season.name}</h3>
-            <p style={{ margin: 0, color: "var(--graphite)", maxWidth: "40ch" }}>{season.blurb}</p>
-            {season.confidence < 0.35 && (
-              <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", marginTop: "0.75rem" }}>
-                Close to {season.runnerUp} — confidence {season.confidence.toFixed(2)}. Colours
-                shared by both are safest.
-              </p>
-            )}
-
-            <ul className="swatches" style={{ marginTop: "2rem" }}>
-              {season.best.map((hex) => (
-                <li key={hex} style={{ background: hex }} data-hex={hex.toUpperCase()} />
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
 
