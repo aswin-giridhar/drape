@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { extractGarmentColour } from "@/lib/garment";
 import { scoreGarment, type ColourProfile, type GarmentScore } from "@/lib/palette";
 import { labelFor } from "@/lib/skinzip";
+import { describeGarment, type Description } from "@/lib/describe";
+import { measureGarmentGeometry } from "@/lib/geometry";
+import { useSpeech } from "@/lib/useSpeech";
 
 /* ------------------------------------------------------------------ */
 /* Shapes mirroring the API responses                                  */
@@ -78,6 +81,8 @@ export default function Page() {
     unreachable?: boolean;
   } | null>(null);
 
+  const voice = useSpeech();
+
   // Re-scan for reveal targets whenever the view changes.
   useReveals(scan ? sitter?.id ?? "own" : "intro");
 
@@ -135,7 +140,17 @@ export default function Page() {
         <div className="wordmark">
           Drape <small>Colour analysis</small>
         </div>
-        <div className="meter">
+        <div className="meter" style={{ gap: "1.25rem" }}>
+          {voice.available && (
+            <button
+              className="voicetoggle"
+              onClick={voice.toggle}
+              aria-pressed={voice.on}
+              title="Read descriptions aloud throughout"
+            >
+              {voice.on ? "Voice on" : "Voice off"}
+            </button>
+          )}
           {budget?.unreachable ? (
             <>
               <i className="off" />
@@ -198,11 +213,11 @@ export default function Page() {
         <>
           <SectionNav />
           <ColourCard scan={scan} portrait={sitter?.facePhoto ?? ownFace ?? undefined} />
-          <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
+          <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} voice={voice} />
           {/* Bring-your-own sits above the catalogue: it is the section that
               proves this works on anything, and it was previously buried
               eleven screens down beneath a grid of football kits. */}
-          <YourOwnPiece scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
+          <YourOwnPiece scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} voice={voice} />
           <TheGallery scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <div style={{ paddingTop: "var(--hang)" }}>
             <button
@@ -689,6 +704,130 @@ interface RailItem extends CatalogueItem {
   hex: string;
 }
 
+
+
+/**
+ * The turntable.
+ *
+ * The garment as a solid object you can turn, reconstructed from the flat
+ * product photograph. Shown only where a mesh exists; its absence is silent,
+ * because it enriches the room rather than carrying it.
+ */
+function Turntable({ slug, title }: { slug: string; title: string }) {
+  const [ok, setOk] = useState(false);
+  const src = `/models3d/${slug}.glb`;
+
+  useEffect(() => {
+    let alive = true;
+    // HEAD first: a missing mesh must not render an empty box.
+    fetch(src, { method: "HEAD" })
+      .then((r) => alive && setOk(r.ok))
+      .catch(() => alive && setOk(false));
+    return () => {
+      alive = false;
+    };
+  }, [src]);
+
+  if (!ok) return null;
+
+  return (
+    <div className="turntable">
+      <p className="eyebrow" style={{ margin: "0 0 0.6rem" }}>
+        Turn it — reconstructed in 3D
+      </p>
+      {/* @ts-expect-error - web component, not a React element */}
+      <model-viewer
+        src={src}
+        alt={`A rotatable three-dimensional model of the ${title} garment`}
+        camera-controls
+        auto-rotate
+        loading="eager"
+        reveal="auto"
+        rotation-per-second="18deg"
+        shadow-intensity="0.6"
+        exposure="1.05"
+        environment-image="neutral"
+        style={{ width: "100%", height: "300px", background: "transparent" }}
+      />
+    </div>
+  );
+}
+
+type Voice = ReturnType<typeof useSpeech>;
+
+/**
+ * The spoken description of a garment, available anywhere a garment appears.
+ *
+ * This is the room's voice, not a separate mode: the text is always rendered,
+ * speech is an enhancement, and it sits inside the same surface as the picture
+ * rather than on a page of its own.
+ */
+function Described({
+  hex,
+  profile,
+  voice,
+  originalSrc,
+  renderSrc,
+  patterned,
+}: {
+  hex: string;
+  profile: ColourProfile;
+  voice: Voice;
+  originalSrc?: string | null;
+  renderSrc?: string | null;
+  patterned?: boolean;
+}) {
+  const [desc, setDesc] = useState<Description | null>(null);
+  const [measuring, setMeasuring] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    // Colour-only description immediately, so there is never a blank state.
+    setDesc(describeGarment(hex, profile, undefined, { patterned }));
+    if (!originalSrc || !renderSrc) return;
+    setMeasuring(true);
+    measureGarmentGeometry(originalSrc, renderSrc)
+      .then((g) => alive && setDesc(describeGarment(hex, profile, g, { patterned })))
+      .catch(() => {/* stays colour-only, and says so */})
+      .finally(() => alive && setMeasuring(false));
+    return () => {
+      alive = false;
+    };
+  }, [hex, profile, originalSrc, renderSrc, patterned]);
+
+  useEffect(() => {
+    if (desc && voice.on) voice.say(desc.spoken);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desc?.spoken, voice.on]);
+
+  if (!desc) return null;
+
+  return (
+    <div className="described">
+      <div className="described-head">
+        <p className="eyebrow" style={{ margin: 0 }}>
+          In words{measuring ? " · measuring the shape" : ""}
+        </p>
+        <button className="ghost" onClick={() => voice.say(desc.spoken, true)}>
+          {voice.speaking ? "Reading…" : "Read aloud"}
+        </button>
+      </div>
+      <p className="described-lead">{desc.headline}</p>
+      <p>{desc.againstYou}</p>
+      {desc.detail.length > 0 && (
+        <ul>
+          {desc.detail.map((d) => (
+            <li key={d}>{d}</li>
+          ))}
+        </ul>
+      )}
+      {desc.unknown.length > 0 && (
+        <p className="described-unknown">{desc.unknown.join(" ")}</p>
+      )}
+    </div>
+  );
+}
+
 /**
  * THE DRAPING SCRUB.
  *
@@ -703,8 +842,14 @@ interface RailItem extends CatalogueItem {
  */
 function DrapingScrub({
   frames,
+  profile,
+  voice,
+  bodyPhoto,
 }: {
   frames: { slug: string; title: string; hex: string; src: string; score: GarmentScore }[];
+  profile: ColourProfile;
+  voice: Voice;
+  bodyPhoto?: string | null;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -849,6 +994,18 @@ function DrapingScrub({
             <b>↓</b>
             {index < frames.length - 1 ? "Keep scrolling — it gets better" : "Her best colour"}
           </p>
+
+          {/* The same garment, in words. Present on the main surface rather
+              than behind a separate accessible page. */}
+          <Described
+            hex={current.hex}
+            profile={profile}
+            voice={voice}
+            originalSrc={bodyPhoto ?? undefined}
+            renderSrc={current.src}
+          />
+
+          <Turntable slug={current.slug} title={current.title} />
         </div>
       </div>
     </div>
@@ -859,10 +1016,12 @@ function TheRail({
   scan,
   bodyPhoto,
   sitterId,
+  voice,
 }: {
   scan: ScanResult;
   bodyPhoto?: string | null;
   sitterId?: string;
+  voice: Voice;
 }) {
   const [rail, setRail] = useState<RailItem[] | null>(null);
   const [tryOns, setTryOns] = useState<Record<string, string>>({});
@@ -975,7 +1134,7 @@ function TheRail({
       {/* Pre-rendered sitters get the scrub; everyone else gets the clickable rail. */}
       {scrubFrames.length >= 3 ? (
         <>
-          <DrapingScrub frames={scrubFrames} />
+          <DrapingScrub frames={scrubFrames} profile={scan.profile} voice={voice} bodyPhoto={bodyPhoto} />
           {/* The scrub is strictly sequential, so the one question a shopper
               actually asks - is this better than that? - had no answer anywhere.
               Here they sit next to each other. */}
@@ -1222,10 +1381,12 @@ function YourOwnPiece({
   scan,
   bodyPhoto,
   sitterId,
+  voice,
 }: {
   scan: ScanResult;
   bodyPhoto?: string | null;
   sitterId?: string;
+  voice: Voice;
 }) {
   const [garment, setGarment] = useState<string | null>(null);
   const [colour, setColour] = useState<{ hex: string; patterned: boolean } | null>(null);
@@ -1355,6 +1516,15 @@ function YourOwnPiece({
                 <li key={r}>{r}</li>
               ))}
             </ul>
+
+            <Described
+              hex={colour.hex}
+              profile={scan.profile}
+              voice={voice}
+              originalSrc={bodyPhoto ?? undefined}
+              renderSrc={tryOn ?? undefined}
+              patterned={colour.patterned}
+            />
 
             {bodyPhoto ? (
               <button onClick={hang} disabled={busy || !!tryOn} style={{ marginTop: "1.75rem" }}>

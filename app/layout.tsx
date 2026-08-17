@@ -17,6 +17,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
+        {/* Turntable viewer for the garment meshes. Loaded as a module so it
+            degrades to nothing if it fails - the page never depends on it. */}
+        <script
+          type="module"
+          src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"
+          async
+        />
       </head>
       <body>{children}</body>
     </html>
