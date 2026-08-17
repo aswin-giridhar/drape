@@ -28,3 +28,4 @@ next-env.d.ts
 docs/video/
 scripts/capture-demo.mjs
 scripts/capture-extras.mjs
+docs/demo/
