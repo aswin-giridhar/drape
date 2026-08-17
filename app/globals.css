@@ -1535,3 +1535,51 @@ button:disabled {
   color: var(--pencil);
   margin-left: 0.15em;
 }
+
+/* The contrast lever */
+.hair-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.hair-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+  min-height: 2.75rem;
+  background: var(--wall);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  cursor: pointer;
+}
+
+.hair-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hair-chip {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+}
+
+.hair-shot {
+  margin: 1.25rem 0 0;
+}
+
+.hair-shot img {
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  border: 1px solid var(--hairline);
+  background: var(--mount);
+  display: block;
+}

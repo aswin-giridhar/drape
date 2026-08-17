@@ -17,6 +17,7 @@ export const COST = {
   skinAnalysis: 16,
   toneAnalysis: 20,
   tryOn: 2,
+  hairColour: 1,
 } as const;
 
 export const FULL_SCAN_COST = COST.skinAnalysis + COST.toneAnalysis;

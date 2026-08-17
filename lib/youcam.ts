@@ -440,6 +440,45 @@ function pickAttributes(results: any): Omit<FaceAttributes, "raw"> {
   };
 }
 
+/**
+ * Hair Colour.
+ *
+ * On-thesis because contrast is the one axis of a colour season a person can
+ * actually change. We measure hair-to-skin lightness spread and now feed it to
+ * the classifier, so "here is you two shades lighter" is a prescription rather
+ * than a toy.
+ *
+ * Request shape is not in the published docs; this was established against the
+ * live API. `palettes` sits at the TOP level, not inside `pattern`, and
+ * `pattern.name` accepts only "full" and "ombre" - every other plausible value
+ * ("solid", "all_over", "balayage", "highlight", ...) is rejected.
+ *
+ * TWO MEASURED CAVEATS, both surfaced to the user rather than hidden:
+ *   1. It TINTS rather than replaces. Requested #a87b52 (L* 55) came back as
+ *      L* 27 in shadow, because the render preserves the original shading. You
+ *      get a plausible dye job, not a colour-accurate fill.
+ *   2. The mask bleeds onto dark clothing next to the hair - a dark top came
+ *      back recoloured along with the hair.
+ * So this is shown as a look, and we do NOT re-measure contrast from the
+ * result. Quoting a new dL* off a tinted render would be inventing precision.
+ */
+export async function recolourHair(fileId: string, hex: string): Promise<{ imageUrl: string }> {
+  const r = await runTask("hair-color", {
+    src_file_id: fileId,
+    pattern: { name: "full" },
+    palettes: [{ color: hex }],
+  });
+  const url = r.results?.[0]?.data?.[0]?.url ?? r.results?.url ?? r.results?.[0]?.url;
+  if (typeof url !== "string") {
+    throw new YouCamError(
+      `hair-color returned no image: ${JSON.stringify(r.results).slice(0, 200)}`,
+      "no_output",
+      "The hair colour didn't come back.",
+    );
+  }
+  return { imageUrl: url };
+}
+
 export type GarmentCategory =
   | "upper_body" | "lower_body" | "full_body" | "shoes" | "outerwear" | "auto";
 
