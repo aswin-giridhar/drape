@@ -55,6 +55,12 @@ reasons, not just a number.
 **4. It proves it.** YouCam's AI Clothes Virtual Try-On hangs the garment on your
 own body in about fifteen seconds.
 
+**4b. It answers the two questions people actually ask.** Gold or silver, and
+what lipstick. Both come from measurements we already hold: metal tone follows
+directly from undertone, and a lipstick is a colour held against the same face as
+a garment, so the garment scorer ranks shades unchanged. No extra endpoint, no
+extra units.
+
 **5. It says it out loud.** Every garment is also described in words and read
 aloud — colour, how it sits against your skin, and where it falls on your body.
 Online clothes shopping is built entirely on pictures, and not everyone gets one.
@@ -222,7 +228,7 @@ restyle, or let go.
 
 **Testing notes for judges:** no sign-in. Turn **Voice** on in the header to hear
 any garment described; press **Turn it** on the rail plate to handle the garment in
-3D. Three completed sittings are stored from
+3D; click any generated render to enlarge it, with a fit/actual-size toggle. Three completed sittings are stored from
 real API responses and use no units, so the full colour card, palette and skin
 reading render instantly. Try-ons and your own photographs call the live API. If
 you upload your own, use a head-and-shoulders shot where your face fills about

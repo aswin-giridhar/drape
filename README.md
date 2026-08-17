@@ -86,6 +86,22 @@ from the swatch printed beside it — a colour-analysis app disagreeing with its
 colour. Driving both from one hex makes them structurally unable to diverge, and measured
 the error down to about **3**.
 
+### Metals and lip colours
+
+Every real colour-analysis session ends with two questions: *gold or silver?* and
+*what lipstick?* Drape answers both, and **neither needed a new endpoint**.
+
+Metal tone is the most direct inference available from undertone, which we already
+measure, so the verdict branches on the undertone the card already prints rather
+than on a second threshold over the same ratio. Lipstick is a colour held against
+the same face as a garment, so `scoreGarment` ranks twelve shades unchanged.
+
+The shade list deliberately spans cool blue-reds through warm corals to neutral
+browns, because a list containing only flattering colours cannot separate. Measured
+spread between best and worst shade across the three sitters: **4.9, 6.8 and 2.6
+points**, and the orderings hold up - the warm sitters sink blue-red, berry and
+plum, while the Dark Autumn sitter takes terracotta, plum and brick.
+
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.
 
