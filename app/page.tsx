@@ -40,7 +40,15 @@ interface ScanResult {
 interface Sitter {
   id: string;
   name: string;
+  /** The file the analyser actually read. Kept as provenance; not displayed. */
   facePhoto: string;
+  /**
+   * A sharp display crop of the same head, cut from the full-length original at
+   * native resolution. The measured file was enlarged to 1200px from roughly
+   * 600px of real detail, so showing it magnified its own softness on the one
+   * image the whole product rests on.
+   */
+  portrait: string;
   bodyPhoto: string;
   preset: string;
 }
@@ -50,6 +58,7 @@ const SITTERS: Sitter[] = [
     id: "person_b",
     name: "Sitting no. 1",
     facePhoto: "/models/person_b_face.jpg",
+    portrait: "/models/person_b_portrait.jpg",
     bodyPhoto: "/models/person_b.jpg",
     preset: "/presets/person_b.json",
   },
@@ -57,6 +66,7 @@ const SITTERS: Sitter[] = [
     id: "person_c",
     name: "Sitting no. 2",
     facePhoto: "/models/person_c_face.jpg",
+    portrait: "/models/person_c_portrait.jpg",
     bodyPhoto: "/models/person_c.jpg",
     preset: "/presets/person_c.json",
   },
@@ -64,6 +74,7 @@ const SITTERS: Sitter[] = [
     id: "person_a",
     name: "Sitting no. 3",
     facePhoto: "/models/person_a_face.jpg",
+    portrait: "/models/person_a_portrait.jpg",
     bodyPhoto: "/models/person_a.jpg",
     preset: "/presets/person_a.json",
   },
@@ -220,7 +231,7 @@ export default function Page() {
       {scan && (
         <>
           <SectionNav />
-          <ColourCard scan={scan} portrait={sitter?.facePhoto ?? ownFace ?? undefined} />
+          <ColourCard scan={scan} portrait={sitter?.portrait ?? ownFace ?? undefined} />
           <TheRail scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} voice={voice} />
           {/* Bring-your-own sits above the catalogue: it is the section that
               proves this works on anything, and it was previously buried
