@@ -1,8 +1,8 @@
 # Drape — demo video script
 
-**Target: 2:30. Measured narration rate 2.65 words/sec → budget ≤ 400 words.**
-This script is **359 words ≈ 2:15 spoken**, over **2:32 of footage** — the
-17-second margin is deliberate breathing room between beats. Don't spend it all.
+**Measured narration rate 2.65 words/sec.** This script is **~420 words ≈ 2:39
+spoken**, over **2:52 of footage** — the 13-second margin is breathing room
+between beats, not spare capacity. The hard limit is 3:00; do not overrun it.
 
 Rules requirements this script satisfies: 1–3 minutes, explains which YouCam APIs
 were used, shows the project working on the device it was built for.
@@ -26,7 +26,7 @@ were used, shows the project working on the device it was built for.
 > AI Skin Analysis returns fourteen skin concerns.
 >
 > Everything in monospace here was read by an instrument. Skin, brown at
-> AE8A6F. Depth, twenty-seven degrees on the ITA scale — the standard
+> AC8973. Depth, thirty point two degrees on the ITA scale — the standard
 > dermatological measure. Undertone, warm. Contrast, medium.
 >
 > From those numbers, not from a guess, she's a True Spring. And the palette
@@ -38,49 +38,61 @@ were used, shows the project working on the device it was built for.
 **On screen:** the pinned stage. Keep scrolling steadily — the garment changes
 on her body: charcoal → petrol → moss → ivory → marigold.
 
-> Here's the part that matters. One garment. Fourteen colours. Nothing changes
-> but the colour — so the ranking is entirely about her.
+> Here's the part that matters. One garment, fourteen colours. Nothing changes
+> but the colour, so the ranking is entirely about her.
 >
-> And I'm not clicking through a grid. I'm scrolling, and the garment is
-> changing on her body. Every one of these is a real YouCam try-on render,
-> generated ahead of time. This is what a stylist does — holds swatch after
-> swatch against you and watches what each one does.
+> And I'm not clicking a grid — I'm scrolling, and the garment is changing on
+> her body. Every frame is a real YouCam try-on render. This is what a stylist
+> does: swatch after swatch, watching what each one does.
 >
-> Charcoal, nought point five. Moss, two point seven. Ivory, four point seven.
-> And her best — marigold, eight point three.
+> Charcoal, nought point five. Ivory, four point seven. And her best —
+> marigold, eight point three.
 >
 > That ordering isn't a vibe. Each colour is scored against her palette with
-> Delta E 2000, the perceptual colour-difference standard, weighted by how well
-> its temperature matches her measured undertone. That engine is our own code
-> and costs zero API units.
+> Delta E 2000, weighted by how well its temperature matches her measured
+> undertone. That engine is our own code, and costs zero API units.
 
 ---
 
-### Beat 4 — the honest bit · 1:45–2:00 · 42 words
+### Beat 3b — in words, and in the round · 1:45–2:07 · 62 words
+**On screen:** press **Read aloud** and let the voice run a few seconds, then
+press **Turn it** on the plate and drag the garment round once.
+
+> Every garment is also described in words, and read aloud — because online
+> clothes shopping is built entirely on pictures, and not everyone gets one.
+> The same measurements become a sentence.
+>
+> And this is the flat product photograph, reconstructed as a solid you can
+> turn. One mesh, tinted from the same hex as the swatch, so the model and the
+> recommendation cannot disagree.
+
+---
+
+### Beat 4 — the honest bit · 2:07–2:22 · 42 words
 **On screen:** let marigold hold on screen.
 
-> One thing we deliberately don't claim. We tested whether the garment changes
-> her measured skin scores. It moves them by nought point two. So we don't
-> pretend otherwise — we show the reasoning and the picture.
+> Two things we deliberately don't claim. We tested whether the garment changes
+> her measured skin scores: it moves them by nought point two — noise. And we
+> added a fourth endpoint hoping for a second opinion on hair colour; it
+> returned the same values to the byte. One engine, two names. So we say so.
 
 ---
 
-### Beat 5 — a second sitter · 2:00–2:20 · 53 words
+### Beat 5 — a second sitter · 2:22–2:42 · 56 words
 **On screen:** back, open Sitting no. 2, scroll her scrub to the end.
 
 > Different person, same rail. She measures Dark Autumn — depth minus
-> forty-seven, low contrast. Now rust ranks top and marigold falls away. Same
-> fourteen garments, completely different answer, because the answer was never
-> about the garments.
+> forty-seven point five, low contrast. Now rust ranks top at nine point three
+> and marigold falls away. Same fourteen garments, completely different answer,
+> because the answer was never about the garments.
 
 ---
 
-### Beat 6 — close · 2:19–2:30 · 32 words
+### Beat 6 — close · 2:42–2:52 · 24 words
 **On screen:** scroll to the gallery, then the wordmark.
 
-> Facial Colour Tones Analyzer, AI Skin Analysis, AI Clothes Virtual Try-On —
-> one measurement, one decision. Drape. It's live, and you can sit for it
-> yourself.
+> Four YouCam endpoints, one measurement, one decision. Drape. It's live, and
+> you can sit for it yourself.
 
 ---
 

@@ -33,9 +33,11 @@ Drape replaces the swatch book with measurement.
 
 ### What it does
 
-**1. It measures.** Two YouCam APIs run on one photograph. The Facial Colour
+**1. It measures.** Three YouCam APIs run on one photograph. The Facial Colour
 Tones Analyzer returns skin, eye, lip and eyebrow colour as hex values. AI Skin
-Analysis returns fourteen skin concerns, including redness.
+Analysis returns fourteen skin concerns, including redness. Face Attribute
+Analysis returns face shape, which drives neckline guidance — because a neckline
+does as much work against a face as a colour does.
 
 **2. It reasons.** Our own colour engine turns those measurements into a personal
 palette: ITA° for depth (the standard dermatological measure of skin tone), the
@@ -53,6 +55,15 @@ reasons, not just a number.
 **4. It proves it.** YouCam's AI Clothes Virtual Try-On hangs the garment on your
 own body in about fifteen seconds.
 
+**5. It says it out loud.** Every garment is also described in words and read
+aloud — colour, how it sits against your skin, and where it falls on your body.
+Online clothes shopping is built entirely on pictures, and not everyone gets one.
+The visual API produces a non-visual answer.
+
+**6. It hands you the object.** Each rail frame toggles between the garment worn
+and a 3D reconstruction of it built from the flat product photograph, which you
+can turn.
+
 **The house rail** is the clearest demonstration: one garment, fourteen colours
 spanning warm to cool and light to deep. Nothing changes but the colour, so the
 ranking is entirely about the person. Our first sitter measures True Spring and
@@ -61,7 +72,7 @@ the same fourteen garments reorder completely, with Rust on top. Same rail,
 different person, different answer.
 
 And you don't click through it, you **scroll** it. The sitter stays pinned while
-scrolling cycles the garment on her body from her worst colour up to her best.
+scrolling cycles the garment on their body from their worst colour up to their best.
 Every frame is a real try-on render generated ahead of time, so the interaction
 costs nothing at view time and cannot fail while a judge is looking at it. That
 is deliberate: draping is holding swatch after swatch against someone and
@@ -93,8 +104,16 @@ findings changed the build:
   a known reference garment: −4 to −5° on v2 versus −11.8° on v4. Hue is the axis
   that decides warm versus cool, so we use v2 despite v4 being newer.
 - **The tone analyser returned "#FAF0BE (Blonde)" for a subject with abundant dark
-  brown hair**, and omits hair colour entirely for some faces. Drape cross-validates
-  and asks the user to confirm rather than silently mis-seasoning them.
+  brown hair**, and omits hair colour entirely for some faces. Drape substitutes a
+  dark default and labels the contrast figure **"estimated, not measured"** on the
+  card, because an estimate and a measurement must never look alike on a page whose
+  whole claim is that it measured something.
+- **The 3D turntable disagreed with our own swatch.** Image-to-3D bakes the product
+  photograph's shading into the mesh albedo, so a per-colour mesh sat a mean ΔE76 of
+  **12.2** from the swatch printed beside it — a colour-analysis app contradicting
+  itself about a colour. One mesh tinted at runtime from the same hex makes them
+  structurally unable to diverge; measured error fell to about **3**, and the payload
+  from 1016KB to 165KB.
 
 ### Accomplishments we're proud of
 
@@ -105,6 +124,23 @@ establish noise — and the effect was 0.2 points on a 0–100 scale. The larger
 movement we first saw was generative face smoothing, not colour physics. So we
 cut our own headline feature rather than ship a confidently wrong number in a
 product whose entire pitch is objectivity.
+
+And we did it again, on the last day. The tone analyser gets hair colour wrong, so
+we integrated a fourth endpoint — Face Attribute Analysis — hoping for an
+**independent** second reading. Two instruments disagreeing would have been real
+evidence, and would have let us replace "estimated" with a measurement. Across
+three sitters and nine colour readings, seven came back **byte-identical** and the
+other two differed by less than a just-noticeable difference (ΔE76 2.73 and 0.69).
+Where one endpoint had no hair reading, neither did the other.
+
+It is one colour engine behind two endpoint names. It cannot corroborate anything,
+and presenting it as a cross-check would have manufactured confidence out of a
+value that was never independent. So we kept the endpoint for the one thing it
+uniquely provides — face shape — and published the negative result instead.
+
+We also went looking for a shortcut and confirmed there isn't one: we enumerated
+the platform's documented operations for a seasonal-palette or personal-colour
+endpoint. There is none. The twelve-season classifier is ours.
 
 ### Why this isn't another colour-analysis app
 
@@ -159,14 +195,17 @@ restyle, or let go.
 ## Built with
 
 `youcam-api` · `perfect-corp` · `nextjs` · `typescript` · `react` · `vercel` ·
-`ciede2000` · `colour-science` · `canvas`
+`ciede2000` · `colour-science` · `canvas` · `web-speech-api` · `model-viewer` ·
+`gltf` · `runware` · `accessibility`
 
 ## Try it out
 
 - Live: https://drape-five-delta.vercel.app
 - Code: https://github.com/aswin-giridhar/drape
 
-**Testing notes for judges:** no sign-in. Three completed sittings are stored from
+**Testing notes for judges:** no sign-in. Turn **Voice** on in the header to hear
+any garment described; press **Turn it** on the rail plate to handle the garment in
+3D. Three completed sittings are stored from
 real API responses and use no units, so the full colour card, palette and skin
 reading render instantly. Try-ons and your own photographs call the live API. If
 you upload your own, use a head-and-shoulders shot where your face fills about
