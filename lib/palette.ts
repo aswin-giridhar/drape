@@ -47,9 +47,10 @@ export type SeasonName =
 
 /**
  * Each season sits at a point in a 3-axis space:
- *   temp    -1 = cool ............ +1 = warm
- *   value    0 = light ...........  1 = deep
- *   clarity  0 = muted/soft ......  1 = clear/bright
+ *   temp     -1 = cool ........... +1 = warm
+ *   value     0 = light ..........  1 = deep
+ *   clarity   0 = muted/soft .....  1 = clear/bright
+ *   contrast  0 = blended ........  1 = high hair-to-skin contrast
  *
  * Nearest-point classification (rather than nested conditionals) gives us a
  * runner-up season and a confidence for free, and keeps the tuning in one place.
@@ -59,6 +60,12 @@ interface Season {
   temp: number;
   value: number;
   clarity: number;
+  /**
+   * Conventional, not derived. See the note above SEASON_CONTRAST_WEIGHT for why
+   * this is hand-assigned from the established system rather than computed from
+   * the palette arrays in this file.
+   */
+  contrast: number;
   blurb: string;
   best: string[];
   avoid: string[];
@@ -66,55 +73,55 @@ interface Season {
 
 export const SEASONS: Season[] = [
   {
-    name: "Light Spring", temp: 0.6, value: 0.15, clarity: 0.6,
+    name: "Light Spring", temp: 0.6, value: 0.15, clarity: 0.6, contrast: 0.35,
     blurb: "Warm and delicate — colours should stay light and fresh.",
     best: ["#F7C59F", "#FFD9A0", "#B7E4C7", "#A8DADC", "#FFE5B4", "#F4A896", "#C9E4A6", "#FDFCDC"],
     avoid: ["#000000", "#4A0E0E", "#2F3E46", "#5B2333"],
   },
   {
-    name: "True Spring", temp: 1.0, value: 0.3, clarity: 0.8,
+    name: "True Spring", temp: 1.0, value: 0.3, clarity: 0.8, contrast: 0.5,
     blurb: "Warm and clear — golden, sunlit colours.",
     best: ["#FF9F1C", "#FFBF69", "#2EC4B6", "#CBF3F0", "#F4D35E", "#EE964B", "#8AC926", "#FFE066"],
     avoid: ["#4A4E69", "#22223B", "#8D99AE", "#6D6875"],
   },
   {
-    name: "Bright Spring", temp: 0.5, value: 0.35, clarity: 1.0,
+    name: "Bright Spring", temp: 0.5, value: 0.35, clarity: 1.0, contrast: 0.85,
     blurb: "Warm-leaning and vivid — saturation is your friend.",
     best: ["#FF6B35", "#F7B801", "#00BBF9", "#00F5D4", "#FEE440", "#FF477E", "#38B000", "#48CAE4"],
     avoid: ["#6B705C", "#A5A58D", "#B7B7A4", "#7F5539"],
   },
   {
-    name: "Light Summer", temp: -0.5, value: 0.15, clarity: 0.4,
+    name: "Light Summer", temp: -0.5, value: 0.15, clarity: 0.4, contrast: 0.25,
     blurb: "Cool and soft — gentle, powdery tones.",
     best: ["#CDB4DB", "#BDE0FE", "#A2D2FF", "#FFC8DD", "#E0FBFC", "#B8C0FF", "#C8E7E3", "#DEE2FF"],
     avoid: ["#FF6B35", "#D00000", "#7F4F24", "#FFB703"],
   },
   {
-    name: "True Summer", temp: -1.0, value: 0.4, clarity: 0.3,
+    name: "True Summer", temp: -1.0, value: 0.4, clarity: 0.3, contrast: 0.3,
     blurb: "Cool and muted — soft blues, roses and greys.",
     best: ["#8AA9C1", "#6D95B0", "#C08497", "#9EB3C2", "#B08EA2", "#7C99B4", "#A3B9C9", "#D5C6D0"],
     avoid: ["#FF9F1C", "#E85D04", "#9C6644", "#FFBA08"],
   },
   {
-    name: "Soft Summer", temp: -0.3, value: 0.5, clarity: 0.1,
+    name: "Soft Summer", temp: -0.3, value: 0.5, clarity: 0.1, contrast: 0.1,
     blurb: "Cool-neutral and muted — nothing too bright.",
     best: ["#8E9AAF", "#B8B8D1", "#A5A58D", "#9A8C98", "#C9ADA7", "#6B8F9C", "#AFC1C4", "#B5B8A3"],
     avoid: ["#FF0000", "#FFEE32", "#00F5D4", "#FF477E"],
   },
   {
-    name: "Soft Autumn", temp: 0.3, value: 0.5, clarity: 0.1,
+    name: "Soft Autumn", temp: 0.3, value: 0.5, clarity: 0.1, contrast: 0.15,
     blurb: "Warm-neutral and muted — earthy, blended tones.",
     best: ["#A68A64", "#B6AD90", "#7F9172", "#C2A878", "#A4AC86", "#997B66", "#CBBFA6", "#8A9A7B"],
     avoid: ["#00F5D4", "#FF006E", "#3A0CA3", "#00BBF9"],
   },
   {
-    name: "True Autumn", temp: 1.0, value: 0.65, clarity: 0.35,
+    name: "True Autumn", temp: 1.0, value: 0.65, clarity: 0.35, contrast: 0.4,
     blurb: "Warm and rich — spice, moss and rust.",
     best: ["#BC6C25", "#606C38", "#DDA15E", "#9C6644", "#7F4F24", "#A3B18A", "#B08968", "#8A5A44"],
     avoid: ["#BDE0FE", "#CDB4DB", "#FFC8DD", "#A2D2FF"],
   },
   {
-    name: "Dark Autumn", temp: 0.6, value: 0.85, clarity: 0.4,
+    name: "Dark Autumn", temp: 0.6, value: 0.85, clarity: 0.4, contrast: 0.65,
     blurb: "Warm and deep — spice, jewel and one warm light.",
     // Every colour here used to sit between L* 21 and 47: eight browns and
     // olives, no light anchor at all. A deep-skinned wearer was being handed
@@ -125,19 +132,19 @@ export const SEASONS: Season[] = [
     avoid: ["#FFB3C6", "#E0FBFC", "#CBF3F0", "#D8BFD8"],
   },
   {
-    name: "Bright Winter", temp: -0.4, value: 0.6, clarity: 1.0,
+    name: "Bright Winter", temp: -0.4, value: 0.6, clarity: 1.0, contrast: 0.95,
     blurb: "Cool-leaning and vivid — high contrast, high saturation.",
     best: ["#0077B6", "#D00000", "#3A0CA3", "#00B4D8", "#F72585", "#4361EE", "#FFFFFF", "#000000"],
     avoid: ["#B6AD90", "#A5A58D", "#CBBFA6", "#997B66"],
   },
   {
-    name: "True Winter", temp: -1.0, value: 0.75, clarity: 0.9,
+    name: "True Winter", temp: -1.0, value: 0.75, clarity: 0.9, contrast: 0.85,
     blurb: "Cool and clear — icy brights against true black and white.",
     best: ["#03045E", "#0077B6", "#C1121F", "#5A189A", "#FFFFFF", "#000000", "#006BA6", "#B5179E"],
     avoid: ["#DDA15E", "#BC6C25", "#A68A64", "#E9C46A"],
   },
   {
-    name: "Dark Winter", temp: -0.5, value: 0.95, clarity: 0.75,
+    name: "Dark Winter", temp: -0.5, value: 0.95, clarity: 0.75, contrast: 0.9,
     blurb: "Cool and deep — jewel tones against an icy light.",
     // Same defect as Dark Autumn: the old set topped out at L* 37, so it was
     // eight near-blacks. Deep seasons are defined by CONTRAST, and a palette
@@ -179,15 +186,36 @@ export function buildProfile(input: {
   };
 }
 
-/** Map the profile onto the three season axes. */
-function profileAxes(p: ColourProfile): { temp: number; value: number; clarity: number } {
+/** Map the profile onto the four season axes. */
+function profileAxes(
+  p: ColourProfile,
+): { temp: number; value: number; clarity: number; contrast: number } {
   // temperature: undertone ratio ~1.05 is the cool/neutral edge, ~1.6 the warm edge
   const temp = Math.max(-1, Math.min(1, (p.undertoneRatio - 1.32) / 0.35));
   // value: ITA runs roughly +60 (very light) to -30 (deep)
   const value = Math.max(0, Math.min(1, (55 - p.ita) / 70));
   const clarity = p.clarity === "clear" ? 0.75 : 0.25;
-  return { temp, value, clarity };
+  // dL* 0..70 spans a flat, blended face to a very high-contrast one. This value
+  // was already measured and printed on the colour card; until now the
+  // classifier threw it away before deciding anything.
+  const contrast = Math.max(0, Math.min(1, p.contrastSpread / 70));
+  return { temp, value, clarity, contrast };
 }
+
+/**
+ * How hard contrast pulls, relative to temperature at 2.0.
+ *
+ * Swept from 0 to 3 against all three sitters. The answers are identical across
+ * 0.25-0.75, so this sits inside a stable basin rather than on a knife edge; at
+ * 1.0 and above it starts moving a sitter off a season two independent reviewers
+ * called correct, which is the ceiling.
+ *
+ * What it buys is honesty rather than a different answer: it does not reclassify
+ * anyone, it lowers confidence where the face genuinely sits between seasons
+ * (sitter three falls 0.77 -> 0.60), which is what surfaces the runner-up and the
+ * "colours shared by both are safest" note.
+ */
+export const SEASON_CONTRAST_WEIGHT = 0.5;
 
 export interface SeasonMatch {
   season: Season;
@@ -203,7 +231,8 @@ export function classifySeason(p: ColourProfile): SeasonMatch {
     Math.sqrt(
       2.0 * Math.pow(s.temp - ax.temp, 2) +
         1.4 * Math.pow(s.value - ax.value, 2) +
-        1.0 * Math.pow(s.clarity - ax.clarity, 2),
+        1.0 * Math.pow(s.clarity - ax.clarity, 2) +
+        SEASON_CONTRAST_WEIGHT * Math.pow(s.contrast - ax.contrast, 2),
     );
   const ranked = [...SEASONS].sort((a, b) => dist(a) - dist(b));
   const [best, second] = ranked;
