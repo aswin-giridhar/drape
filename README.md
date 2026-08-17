@@ -184,6 +184,18 @@ difference. **This is one colour engine behind two endpoint names.** It cannot c
 the tone analyser, and presenting it as a cross-check would manufacture confidence out of a
 value that was never independent — so we don't.
 
+We tried once more with the **Fitzpatrick Skin Type analyzer**
+(`task/fitzpatrick-scale-analyzer`, 10 units, returns a single Roman numeral). It
+returned exactly what our own ITA already predicts, at both ends of the range:
+
+| sitter | our ITA | ITA predicts | API returned |
+| --- | --- | --- | --- |
+| person_b | 30.2 | III | **III** |
+| person_c | -47.5 | VI | **VI** |
+
+Three endpoints, three attempts at a second opinion, one engine. We compute the
+Fitzpatrick type offline for free instead of paying 10 units to be told it.
+
 What it *does* give is **face shape**, which nothing else on the platform returns, and that
 earns the call on its own. The rail shows one crew-neck t-shirt in fourteen colours, and a
 neckline does as much work against a face as a colour does. Each sitter gets a measured

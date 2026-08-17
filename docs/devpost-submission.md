@@ -144,6 +144,19 @@ and presenting it as a cross-check would have manufactured confidence out of a
 value that was never independent. So we kept the endpoint for the one thing it
 uniquely provides — face shape — and published the negative result instead.
 
+Then we tried a third time, with the Fitzpatrick Skin Type analyzer, on the
+theory that a dedicated skin-type instrument might be independent of the tone
+analyser. It returns a single Roman numeral, costs 10 units a call, and returned
+exactly what our own ITA angle already predicts - III for the sitter at ITA 30.2,
+VI for the sitter at ITA -47.5. We picked those two deliberately, at opposite ends
+of the range, because a single mid-range match cannot tell "derivable" from
+"coincidence". Two exact hits at the extremes can.
+
+So: three endpoints, three attempts to find a second opinion, and the platform
+gives you one engine wearing three names. That is worth knowing, and we would
+rather publish it than quietly ship a cross-check that cannot cross-check
+anything.
+
 We also went looking for a shortcut and confirmed there isn't one: we enumerated
 the platform's documented operations for a seasonal-palette or personal-colour
 endpoint. There is none. The twelve-season classifier is ours.
