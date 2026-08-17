@@ -10,8 +10,9 @@ Paste-ready text for the submission form. Track: **Skin AI + Apparel VTO**.
 
 ## Tagline (short description)
 
-Digital colour draping — measure your skin, eyes and lips, get the colours that
-actually suit you, and see them on your own body before you buy.
+The colour analysis that shows its working. We measure your skin, eyes and lips,
+prove which colours suit you on your own body — and tell you plainly what we
+can't know.
 
 ---
 
@@ -105,6 +106,25 @@ movement we first saw was generative face smoothing, not colour physics. So we
 cut our own headline feature rather than ship a confidently wrong number in a
 product whose entire pitch is objectivity.
 
+### Why this isn't another colour-analysis app
+
+Colour analysis apps shipped in numbers this year - PersonalColorAI, ColorMine,
+Dressika, BeautySpark. We looked at them before claiming novelty. They compete on
+asserted accuracy: "95%+ precision", "94.4% on benchmarks", "trained on 30,000
+draping sessions." None of them show you a single measurement.
+
+Drape inverts that. Every number on screen is one an instrument produced, labelled
+with how it was derived - ITA angle for depth, b*/a* ratio for undertone, ΔE2000
+distance for the garment. Monospace type means instrument-read; serif means
+inferred. You can see which is which at a glance.
+
+And it is the only one we know of that publishes what it could not establish. We
+built a feature to prove a garment improves your measured skin, tested it
+properly, measured the effect at 0.2 points, and deleted it. That number is in
+this submission and in the README.
+
+The category is crowded. Trustworthy measurement in it is not.
+
 ### What we learned
 
 That the interesting work sits between the two APIs, not inside either one. YouCam
@@ -114,10 +134,25 @@ where it is estimating — is the product.
 
 ### What's next for Drape
 
-Integrating YouCam's JS Camera Kit for guided capture, so users take a compliant
-photograph first time instead of discovering the 60% face-width rule from an error
-message. Then the wardrobe audit: photograph what you already own and find out
-what to keep, restyle or let go.
+**Guided capture.** YouCam's JS Camera Kit validates face ratio, lighting and pose
+live, so people take a compliant photograph first time instead of meeting the
+60%-face-width rule as an error message.
+
+**The complete look.** YouCam's fashion suite covers shoes, hats, bags, jewellery
+and fabric. The same measured profile that ranks a top can rank all of them - and
+metal tone is a genuine colour-analysis prescription, since warm undertones take
+gold and cool take silver, which we already measure. We tested the accessory
+endpoints during the hackathon and found `task/scarf` is a generative styling tool
+rather than a colour-accurate try-on: given a marigold reference it returned a navy
+patterned scarf and an invented street scene. Building on it would have broken the
+one guarantee this product makes, so it waits for a colour-faithful path.
+
+**An agentic surface via MCP.** YouCam ships MCP servers for beauty, fashion and
+creators. A styling agent that holds your measured profile and answers "does this
+work on me?" for anything you point at is the natural next form of this product.
+
+**The wardrobe audit.** Photograph what you already own and find out what to keep,
+restyle, or let go.
 
 ---
 
