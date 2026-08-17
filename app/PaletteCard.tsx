@@ -417,7 +417,7 @@ export function PaletteCard(props: PaletteCardProps) {
     `The same information is listed in text below.`;
 
   return (
-    <section className="palette-card" aria-labelledby="palette-card-heading">
+    <section className="palette-card" id="palette-card" aria-labelledby="palette-card-heading">
       <div className="palette-card__intro">
         <h2 id="palette-card-heading" className="palette-card__heading">
           Take your palette with you

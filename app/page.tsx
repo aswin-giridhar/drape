@@ -11,6 +11,7 @@ import { metalFor, rankLips } from "@/lib/adornment";
 import { useSpeech } from "@/lib/useSpeech";
 import { Lightbox, Zoomable } from "./Lightbox";
 import { PaletteCard } from "./PaletteCard";
+import { Closet } from "./Closet";
 
 /* ------------------------------------------------------------------ */
 /* Shapes mirroring the API responses                                  */
@@ -245,6 +246,7 @@ export default function Page() {
               proves this works on anything, and it was previously buried
               eleven screens down beneath a grid of football kits. */}
           <YourOwnPiece scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} voice={voice} />
+          <Closet profile={scan.profile} />
           <TheGallery scan={scan} bodyPhoto={bodyPhoto} sitterId={sitter?.id} />
           <div style={{ paddingTop: "var(--hang)" }}>
             <button
@@ -341,10 +343,15 @@ function useReveals(key: unknown) {
  * Without a way to move between sections the later ones are undiscoverable.
  */
 function SectionNav() {
+  // Every section, not four of eight. Half the product was reachable only by
+  // scrolling past it and hoping - which is the same as not shipping it.
   const items = [
     { id: "card", label: "Colour card" },
+    { id: "palette-card", label: "Take it with you" },
     { id: "rail", label: "The rail" },
+    { id: "footwear", label: "Footwear" },
     { id: "own", label: "Your own piece" },
+    { id: "closet", label: "Your wardrobe" },
     { id: "gallery", label: "Collection" },
   ];
   const [current, setCurrent] = useState("card");
