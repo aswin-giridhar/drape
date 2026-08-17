@@ -107,7 +107,19 @@ describe("presets", () => {
 
       const out = path.join(ROOT, `public/presets/${spec.id}.json`);
       fs.mkdirSync(path.dirname(out), { recursive: true });
-      fs.writeFileSync(out, JSON.stringify(payload));
+
+      // Carry forward anything this generator does not own. Face attributes come
+      // from a separate endpoint and a separate offline script, and rebuilding
+      // the preset from the captured tone/skin responses silently deleted them -
+      // a regeneration step that destroys a sibling's data looks exactly like a
+      // regeneration step that worked.
+      const existing = fs.existsSync(out)
+        ? (JSON.parse(fs.readFileSync(out, "utf8")) as Record<string, unknown>)
+        : {};
+      const preserved = existing.faceAttributes
+        ? { faceAttributes: existing.faceAttributes }
+        : {};
+      fs.writeFileSync(out, JSON.stringify({ ...payload, ...preserved }));
 
       // eslint-disable-next-line no-console
       console.log(

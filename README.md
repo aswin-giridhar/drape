@@ -18,11 +18,11 @@ sittings need no API units, so you can explore the whole product immediately.
 | ![The hero](shots/01-home.png) | ![Your colour card](shots/02-card.png) |
 | **The sitting.** The interface is deliberately achromatic — the only colour on screen is the user's own measured palette. | **Your colour card.** Measured skin, eye and lip hex; ITA depth; undertone; contrast. Monospace means instrument-read. |
 | ![The scrub, worst colour](shots/04-scrub-worst.png) | ![The scrub, best colour](shots/05-scrub-best.png) |
-| **The draping scrub — scroll begins.** The sitter is pinned at her worst colour: charcoal, 0.5, avoid. | **…and ends on her best.** Scrolling has changed the garment on her body through fourteen real try-on renders to marigold, 8.3. Scrolling *is* draping. |
+| **The draping scrub — scroll begins.** The sitter is pinned at their worst colour: charcoal, 0.5, avoid. | **…and ends on their best.** Scrolling has changed the garment on their body through fourteen real try-on renders to marigold, 8.3. Scrolling *is* draping. |
 | ![A second sitter](shots/06-card-sitter2.png) | ![From the collection](shots/03-gallery.png) |
 | **A second sitter** measures Dark Autumn — and the same rail reorders completely. | **From the collection.** All twenty YouCam catalogue pieces ranked against the palette. |
 | ![Best against worst](shots/10-compare.png) | ![Bring your own piece](shots/07-byop.png) |
-| **Best against worst.** Same body, same light, same photograph — fourteen colours apart. Everything deciding which is which was measured from her face. | **Bring your own piece.** Upload any garment; its colour is read in the browser and judged against your measurements, with reasons. |
+| **Best against worst.** Same body, same light, same photograph — fourteen colours apart. Everything deciding which is which was measured from their face. | **Bring your own piece.** Upload any garment; its colour is read in the browser and judged against your measurements, with reasons. |
 
 ---
 
@@ -59,7 +59,7 @@ theory, arrived at purely from measurement. A second sitter measures Dark Autumn
 fourteen garments reorder completely — Rust rises to the top and Marigold falls away.
 
 You don't click through that rail. You **scroll** it. The sitter stays pinned while scrolling
-cycles the garment on her body from her worst colour up to her best, with the score, verdict and
+cycles the garment on their body from their worst colour up to their best, with the score, verdict and
 palette position moving in step. Every frame is a real YouCam try-on render generated ahead of
 time and served as a static file, so the whole interaction costs no units at view time and cannot
 fail while someone is looking at it.
@@ -69,9 +69,22 @@ swatch after swatch against someone and watching what each one does. Scrolling i
 gesture. Anyone who uploads their own photograph gets a clickable rail instead — we render on
 demand rather than faking the scrub with a CSS tint.
 
-The scrub is sequential, so it ends with the two extremes **side by side**: her best colour
-against her worst, same body and same light, with the measured reasoning under each. That is the
+The scrub is sequential, so it ends with the two extremes **side by side**: their best colour
+against their worst, same body and same light, with the measured reasoning under each. That is the
 question a shopper actually asks, and it had no answer anywhere else in the product.
+
+### The garment as an object
+
+Every rail frame carries a **Worn / Turn it** toggle. "Turn it" replaces the photograph, in
+the same frame, with a 3D reconstruction of the garment built from the flat product shot
+(Runware `tripo:v3.1@0`, optimised with gltf-transform from 40MB to 165KB).
+
+One mesh serves all fourteen colours, tinted at runtime from the same hex the swatch uses.
+That is a correctness decision before it is a size one: the reconstruction bakes the product
+photograph's own shading into its albedo, so a per-colour mesh sat a mean ΔE76 of **12.2**
+from the swatch printed beside it — a colour-analysis app disagreeing with itself about a
+colour. Driving both from one hex makes them structurally unable to diverge, and measured
+the error down to about **3**.
 
 **The link between the two APIs, in one sentence:** your measured undertone and redness decide
 which garment colours we surface, and Apparel VTO shows the result on your own body before you buy.
@@ -82,11 +95,16 @@ The APIs measure skin and render try-ons. Neither tells you which colours suit s
 mapping is ours, it runs in `lib/colour.ts` and `lib/palette.ts`, it costs zero API units, and it
 is what turns two measurements into a recommendation.
 
+We can now say that as a **verified** claim rather than an assertion. We enumerated the platform's
+documented operations looking for a seasonal-palette or personal-colour endpoint: there is none.
+The twelve-season classifier in `lib/palette.ts` is ours.
+
 Drape also **cross-validates the API against itself**. Our independently computed skin L\*a\*b\* is
 checked against the API's `skin_color`, and the reported hair colour is sanity-checked. That
-matters: during development the tone analyser returned `#FAF0BE "Blonde"` for a subject with
-abundant dark brown hair. Rather than silently mis-seasoning the user, Drape detects the
-implausible reading and asks for confirmation — which is what a human colour analyst does too.
+matters: the tone analyser returns `#FAF0BE "Blonde"` for a subject with abundant dark brown hair.
+Rather than silently mis-seasoning someone, Drape substitutes a dark default and labels the
+contrast figure **"estimated, not measured"** on the colour card — an estimate and a measurement
+must never look alike on a page whose whole claim is that it measured something.
 
 ---
 
@@ -128,6 +146,39 @@ face smoothing, not colour physics** — proven because warm and cool barely dif
 while both differ from the original. So Drape never claims a try-on improves your measured skin.
 It shows the reasoning and the picture.
 
+### A second claim we went looking for, and could not make
+
+The tone analyser gets hair wrong. So we added a fourth endpoint,
+`face-attr-analysis`, hoping for an **independent** second reading — two instruments
+disagreeing would be real evidence, and would let us replace "estimated" with a measurement.
+
+Measured across three sitters, nine colour readings:
+
+| | `skin-tone-analysis` | `face-attr-analysis` | |
+| --- | --- | --- | --- |
+| person_b hair | `#FAF0BE` | `#FAF0BE` | identical |
+| person_b eye | `#2D242D` | `#2D242D` | identical |
+| person_b lip | `#C57678` | `#C57678` | identical |
+| person_c hair | *absent* | *absent* | both absent |
+| person_a eye | `#332127` | `#392529` | ΔE76 2.73 |
+| person_a lip | `#B97C7D` | `#B97D7D` | ΔE76 0.69 |
+
+Seven of nine byte-identical; the other two differ by less than a just-noticeable
+difference. **This is one colour engine behind two endpoint names.** It cannot corroborate
+the tone analyser, and presenting it as a cross-check would manufacture confidence out of a
+value that was never independent — so we don't.
+
+What it *does* give is **face shape**, which nothing else on the platform returns, and that
+earns the call on its own. The rail shows one crew-neck t-shirt in fourteen colours, and a
+neckline does as much work against a face as a colour does. Each sitter gets a measured
+shape — Triangle, Square, Oblong — and one line of neckline guidance, labelled
+*conventional guidance, not measurement*, because a lookup table is not an instrument.
+
+Two things worth knowing if you use this endpoint: the response keys are not the request
+keys (you ask for `faceShape`, you get `faceshape`, and the colours arrive nested under
+`color`), and it needs `face_angle_strictness_level: "flexible"` or it rejects ordinary
+portraits with `error_face_angle_upward`.
+
 ---
 
 ## YouCam APIs used
@@ -137,6 +188,7 @@ It shows the reasoning and the picture.
 | Facial Colour Tones Analyzer | `POST /s2s/v2.0/task/skin-tone-analysis` | skin / eye / lip / hair hex — drives the palette |
 | AI Skin Analysis | `POST /s2s/v2.0/task/skin-analysis` | 14 raw concern scores; redness feeds garment scoring |
 | AI Clothes Virtual Try-On | `POST /s2s/v2.0/task/cloth` | hangs garments on the subject |
+| Face Attribute Analysis | `POST /s2s/v2.0/task/face-attr-analysis` | face shape — drives neckline guidance |
 | Garment catalogue | `GET /s2s/v2.0/task/template/cloth` | the gallery, ranked by palette |
 | File upload | `POST /s2s/v2.0/file/{feature}` | presigned upload for every image |
 | Units | `GET /s2s/v1.0/client/credit` | live budget guard |
