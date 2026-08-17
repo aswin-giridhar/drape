@@ -6,6 +6,7 @@ import { scoreGarment, type ColourProfile, type GarmentScore } from "@/lib/palet
 import { labelFor } from "@/lib/skinzip";
 import { describeGarment, type Description } from "@/lib/describe";
 import { measureGarmentGeometry } from "@/lib/geometry";
+import { necklineFor } from "@/lib/faceshape";
 import { useSpeech } from "@/lib/useSpeech";
 
 /* ------------------------------------------------------------------ */
@@ -33,6 +34,8 @@ interface ScanResult {
   skin: SkinPayload | null;
   tone: { skinHex: string; hairHex: string; eyeHex: string; lipHex: string; hairName?: string };
   warnings: { field: string; message: string; needsConfirmation: boolean }[];
+  /** Present only for the completed sittings, which were measured offline. */
+  faceAttributes?: { faceShape?: string };
 }
 interface Sitter {
   id: string;
@@ -364,7 +367,6 @@ function Hero() {
   return (
     <section className="hero">
       <div>
-        <p className="eyebrow">Digital colour draping</p>
         <h1 className="display">
           Know what
           <br />
@@ -432,7 +434,7 @@ function TheSitting({
                 <span className="title">{s.name}</span>
                 <span className="score">Open</span>
               </div>
-              <span className="meta">Completed sitting · no units used</span>
+              <span className="meta">Completed sitting</span>
             </div>
           </button>
         ))}
@@ -527,6 +529,7 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
   const photo = portrait ?? skin?.normalisedFace;
   const [showAll, setShowAll] = useState(false);
   const rednessMask = skin?.masks?.redness;
+  const neckline = necklineFor(scan.faceAttributes?.faceShape);
 
   return (
     <section className="section" id="card">
@@ -565,8 +568,9 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
               <span className="score">{profile.ita.toFixed(1)}°</span>
             </div>
             <span className="meta">
-              Hover a panel to drape it · ITA angle, {profile.depth}, {profile.undertone}
+              {profile.depth} · {profile.undertone} · ITA angle
             </span>
+            <span className="hint-inline">Hover a panel to hold that colour against the face</span>
           </div>
         </div>
 
@@ -618,7 +622,29 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
                 <dd>{profile.rednessRaw.toFixed(1)} raw</dd>
               </div>
             )}
+            {neckline && (
+              <div>
+                <dt>Face shape</dt>
+                <dd>{neckline.shape}</dd>
+              </div>
+            )}
           </dl>
+
+          {/* Shape is the one thing the face-attribute endpoint tells us that
+              nothing else on the platform does - its colour readings turned out
+              to be the same engine as the tone analyser. The advice itself is
+              convention rather than measurement, and says so. */}
+          {neckline && (
+            <div className="neckline">
+              <p className="eyebrow" style={{ marginTop: "2rem" }}>
+                Necklines · conventional guidance, not measurement
+              </p>
+              <p style={{ margin: "0 0 0.5rem", maxWidth: "40ch" }}>{neckline.advice}</p>
+              <p className="data" style={{ fontSize: "0.6875rem", color: "var(--pencil)", margin: 0 }}>
+                {neckline.crewVerdict}
+              </p>
+            </div>
+          )}
 
           <div style={{ marginTop: "2.5rem" }}>
             <p className="eyebrow">The verdict</p>
@@ -1064,7 +1090,7 @@ function DrapingScrub({
           </div>
 
           <div className="scrub-bar">
-            <i style={{ width: `${current.score.score * 10}%` }} />
+            <i style={{ transform: `scaleX(${current.score.score / 10})` }} />
           </div>
 
           <dl className="readout" style={{ margin: 0 }}>
@@ -1244,7 +1270,10 @@ function TheRail({
                   <span className="meta">{i === 0 ? "Their best" : "Their worst"}</span>
                   <span className="verdict-line">
                     <strong>{f.title}</strong>
-                    <span>{f.score.score.toFixed(1)}</span>
+                    <span>
+                      {f.score.score.toFixed(1)}
+                      <small>/10</small>
+                    </span>
                   </span>
                   <span className="meta">
                     {f.hex} · {f.score.verdict} · ΔE {f.score.deltaE.toFixed(0)}
@@ -1270,7 +1299,10 @@ function TheRail({
               <div className="label">
                 <div className="label-row">
                   <span className="title">{item.title}</span>
-                  <span className="score">{score.score.toFixed(1)}</span>
+                  <span className="score">
+                    {score.score.toFixed(1)}
+                    <small>/10</small>
+                  </span>
                 </div>
                 <span className="meta">
                   {item.hex} · {score.verdict} · ΔE {score.deltaE.toFixed(0)}

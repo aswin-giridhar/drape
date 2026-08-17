@@ -433,6 +433,16 @@ img {
   transform: scale(1.03);
 }
 
+.gallery .exhibit .frame > img {
+  filter: grayscale(1);
+  transition: transform 600ms var(--ease), filter 600ms var(--ease);
+}
+
+.gallery .exhibit:hover .frame > img,
+.gallery .exhibit:focus-visible .frame > img {
+  filter: grayscale(0);
+}
+
 /* Tombstone label: what a gallery prints beside the work. */
 .label {
   padding-top: 0.85rem;
@@ -519,6 +529,10 @@ img {
   flex: 1;
   width: 100%;
   position: relative;
+  /* Deliberate exception to "don't animate layout properties": this is the
+     cloth-falling gesture, and scaleX would stretch the panel's own contents
+     rather than widen it. Eight elements, hover-triggered, not in the
+     scroll path - the layout cost is paid once and is not on a hot loop. */
   transition: width 520ms var(--ease);
 }
 
@@ -772,10 +786,13 @@ img {
 
 .scrub-bar i {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0 0 0 0;
   background: var(--ink);
-  width: 0;
-  transition: width 240ms var(--ease);
+  /* scaleX rather than width: this bar re-animates on every frame of the
+     scroll-driven rail, and animating width makes each step a layout pass. */
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 240ms var(--ease);
 }
 
 /* One tick per colour: a miniature of the whole rail, filling as you descend. */
@@ -953,7 +970,6 @@ button:disabled {
 
 .notice {
   border: 1px solid var(--ink);
-  border-left-width: 4px;
   padding: 0.9rem 1.15rem;
   margin: 1.25rem 0;
   font-size: 0.9375rem;
@@ -1270,4 +1286,54 @@ button:disabled {
 .filebtn:focus-within {
   outline: 3px solid var(--ink);
   outline-offset: 3px;
+}
+
+
+/* ---------------------------------------------------------------- */
+/* Polish pass                                                       */
+/* ---------------------------------------------------------------- */
+
+/* Instructions are not measurements. The mono face is reserved for values that
+   came off an instrument; telling someone to hover is the page talking. */
+.hint-inline {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--pencil);
+  margin-top: 0.3rem;
+}
+
+/* A bare "0.4" reads as a broken number rather than a score. */
+.label-row .score small,
+.compare span small {
+  font-family: var(--font-data);
+  font-size: 0.5em;
+  letter-spacing: 0.08em;
+  color: var(--pencil);
+  margin-left: 0.15em;
+}
+
+/* The face crops were cut from full-length photographs and enlarged, so the
+   detail in them tops out well below the size the plate was showing them at.
+   Capping the plate shows them at the resolution they actually have instead of
+   magnifying the softness. */
+.drape-frame {
+  max-width: 30rem;
+}
+
+/* The browser surfaces we did not draw still belong to the design. */
+::selection {
+  background: var(--ink);
+  color: var(--wall);
+}
+
+:root {
+  accent-color: var(--ink);
+  caret-color: var(--ink);
+}
+
+/* Data columns line up only if the numerals do. */
+.readout dd,
+.scrub-score,
+.label-row .score {
+  font-variant-numeric: tabular-nums;
 }

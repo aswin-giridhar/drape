@@ -364,6 +364,82 @@ export async function analyseTone(fileId: string): Promise<ToneResult> {
   };
 }
 
+/**
+ * Face Attribute Analysis.
+ *
+ * We added this hoping for a SECOND, INDEPENDENT reading of hair colour, because
+ * `skin-tone-analysis` demonstrably gets hair wrong and the colour card has to
+ * print "estimated, not measured" as a result. Two endpoints disagreeing would
+ * have been real evidence.
+ *
+ * MEASURED, and it is not. For the same photograph both endpoints return:
+ *
+ *     hair  #FAF0BE "Blonde"   <- identical, and identically wrong
+ *     lip   #c57678            <- identical
+ *     eye   #2d242d / #2d232d  <- one unit apart in one channel
+ *
+ * So this is one colour engine behind two endpoint names. It cannot corroborate
+ * `analyseTone`, and presenting it as a cross-check would manufacture confidence
+ * out of a value that was never independent. We call it for `faceShape` alone,
+ * which IS information available nowhere else on the platform, and we keep the
+ * colours only as the evidence for that finding.
+ *
+ * Cost bands by feature COUNT, not by which ones: 1-5 features is 10 units, so
+ * asking for four costs exactly what asking for one does.
+ */
+export const FACE_ATTRIBUTES = ["hairColor", "faceShape", "eyeColor", "lipColor"] as const;
+
+export interface FaceAttributes {
+  faceShape?: string;
+  hairColorHex?: string;
+  hairColorName?: string;
+  eyeColorHex?: string;
+  eyeColorName?: string;
+  lipColorHex?: string;
+  lipColorName?: string;
+  /** The unparsed payload, so a shape we didn't anticipate is never silently lost. */
+  raw: unknown;
+}
+
+export async function analyseFaceAttributes(
+  fileId: string,
+  features: readonly string[] = FACE_ATTRIBUTES,
+): Promise<FaceAttributes> {
+  const r = await runTask("face-attr-analysis", {
+    src_file_id: fileId,
+    features: [...features],
+    // Same default problem as `analyseTone`: strict angle checking rejects
+    // ordinary photographs of people standing naturally. Measured here as
+    // `error_face_angle_upward` on a perfectly usable portrait.
+    face_angle_strictness_level: "flexible",
+  });
+  return { ...pickAttributes(r.results), raw: r.results };
+}
+
+/**
+ * Pull the fields we want out of the response.
+ *
+ * The result key names are not in the published documentation; these are the
+ * ones actually observed. The camelCase names accepted in the REQUEST are not
+ * the names used in the RESPONSE - you ask for `faceShape` and get `faceshape`,
+ * and the colours arrive nested under `color` rather than at the top level.
+ * Anything unrecognised stays visible via `raw` instead of becoming a guess.
+ */
+function pickAttributes(results: any): Omit<FaceAttributes, "raw"> {
+  const r = results ?? {};
+  const c = r.color ?? {};
+  const str = (v: unknown) => (typeof v === "string" && v.length ? v : undefined);
+  return {
+    faceShape: str(r.faceshape ?? r.faceShape),
+    hairColorHex: str(c.hair_color),
+    hairColorName: str(c.hair_color_name),
+    eyeColorHex: str(c.eye_color),
+    eyeColorName: str(c.eye_color_name),
+    lipColorHex: str(c.lip_color),
+    lipColorName: str(c.lip_color_name),
+  };
+}
+
 export type GarmentCategory =
   | "upper_body" | "lower_body" | "full_body" | "shoes" | "outerwear" | "auto";
 
