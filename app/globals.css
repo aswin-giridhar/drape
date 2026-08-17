@@ -1472,3 +1472,66 @@ button:disabled {
   font-size: 0.875rem;
   color: var(--graphite);
 }
+
+/* ---------------------------------------------------------------- */
+/* Metals and lip colours                                            */
+/* ---------------------------------------------------------------- */
+
+.metal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.metal-chip {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+}
+
+/* The measurement a claim rests on, set smaller than the claim itself. */
+.basis {
+  font-size: 0.6875rem;
+  color: var(--pencil);
+  margin: 0.6rem 0 0;
+}
+
+.lips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lips li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.lip-chip {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+}
+
+.lip-name {
+  flex: 1 1 auto;
+}
+
+.lip-score {
+  font-family: var(--font-data);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.lip-score small {
+  font-size: 0.6875em;
+  color: var(--pencil);
+  margin-left: 0.15em;
+}

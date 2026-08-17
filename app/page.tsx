@@ -7,6 +7,7 @@ import { labelFor } from "@/lib/skinzip";
 import { describeGarment, type Description } from "@/lib/describe";
 import { measureGarmentGeometry } from "@/lib/geometry";
 import { necklineFor } from "@/lib/faceshape";
+import { metalFor, rankLips } from "@/lib/adornment";
 import { useSpeech } from "@/lib/useSpeech";
 import { Lightbox, Zoomable } from "./Lightbox";
 
@@ -542,6 +543,10 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
   const [showAll, setShowAll] = useState(false);
   const rednessMask = skin?.masks?.redness;
   const neckline = necklineFor(scan.faceAttributes?.faceShape);
+  // The two questions every colour-analysis session ends with, answered from
+  // measurements we already hold rather than from another API call.
+  const metal = useMemo(() => metalFor(profile), [profile]);
+  const lips = useMemo(() => rankLips(profile), [profile]);
 
   return (
     <section className="section" id="card">
@@ -641,6 +646,36 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
               </div>
             )}
           </dl>
+
+          <div className="adorn">
+            <p className="eyebrow" style={{ marginTop: "2rem" }}>
+              Gold or silver
+            </p>
+            <div className="metal-row">
+              <span className="metal-chip" style={{ background: metal.hex }} aria-hidden="true" />
+              <p style={{ margin: 0, maxWidth: "38ch" }}>{metal.sentence}</p>
+            </div>
+            <p className="data basis">{metal.basis}</p>
+
+            <p className="eyebrow" style={{ marginTop: "2rem" }}>
+              Lip colours, ranked
+            </p>
+            <ol className="lips">
+              {lips.slice(0, 6).map((l) => (
+                <li key={l.hex}>
+                  <span className="lip-chip" style={{ background: l.hex }} aria-hidden="true" />
+                  <span className="lip-name">{l.name}</span>
+                  <span className="lip-score">
+                    {l.score.score.toFixed(1)}
+                    <small>/10</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="data basis">
+              Scored by the same engine that ranks the garments, against the same measured face.
+            </p>
+          </div>
 
           {/* Shape is the one thing the face-attribute endpoint tells us that
               nothing else on the platform does - its colour readings turned out
