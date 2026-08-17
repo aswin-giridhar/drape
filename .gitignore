@@ -23,3 +23,8 @@ dist/
 .env*
 *.tsbuildinfo
 next-env.d.ts
+
+# Demo video and its capture tooling - not part of the deliverable
+docs/video/
+scripts/capture-demo.mjs
+scripts/capture-extras.mjs
