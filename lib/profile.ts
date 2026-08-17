@@ -69,10 +69,11 @@ export function assembleProfile(
       field: "hairHex",
       message: tone.hairHex
         ? `We read your hair as ${tone.hairName ?? tone.hairHex}, but that looks like it may have ` +
-          `picked up the background. Your contrast is estimated until you confirm it — hair colour ` +
-          `strongly affects your season.`
-        : `The analyser didn't return a hair colour for this photograph, so your contrast is ` +
-          `estimated rather than measured. Confirming it will sharpen the result.`,
+          `picked up the background, so we've substituted a dark default. The contrast figure below ` +
+          `is therefore estimated, not measured — and hair colour strongly affects your season.`
+        : `The analyser didn't return a hair colour for this photograph, so we've substituted a ` +
+          `dark default. The contrast figure below is estimated, not measured — treat the season ` +
+          `as indicative. A photograph with your hairline clearly lit will measure it properly.`,
       needsConfirmation: true,
     });
   }

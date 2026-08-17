@@ -140,8 +140,9 @@ img {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.1rem 0;
-  background: color-mix(in srgb, var(--wall) 88%, transparent);
-  backdrop-filter: blur(12px);
+  /* Opaque, not translucent. The blur was not landing over scrolled content,
+     so body copy read clean through the bar and collided with the wordmark. */
+  background: var(--wall);
   border-bottom: 1px solid var(--hairline);
   flex-wrap: wrap;
 }
@@ -200,9 +201,7 @@ img {
   gap: clamp(1rem, 3vw, 2.25rem);
   align-items: center;
   padding: 0.7rem 0;
-  background: color-mix(in srgb, var(--wall) 92%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--hairline);
+  background: var(--wall);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -641,7 +640,7 @@ img {
 
 /* ---------------------------------------------------------------- */
 /* THE DRAPING SCRUB                                                 */
-/* The sitter stays pinned while scroll walks the garment up her own */
+/* The sitter stays pinned while scroll walks the garment up their own */
 /* ranking. Every frame is a real try-on render, pre-generated, so    */
 /* the interaction costs nothing at view time and cannot fail live.   */
 /* ---------------------------------------------------------------- */
@@ -662,18 +661,34 @@ img {
      with an annotation beside it. */
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 5vw, 4.5rem);
-  align-items: center;
+  /* `center` re-centres both columns when one frame's copy runs a line
+     longer, which dropped the pinned photograph 158px and popped it back
+     mid-scrub. Anchoring to the top makes the picture immovable. */
+  align-items: start;
   padding: 2vh 0;
 }
 
+/* Below 860px the whole pin was fighting itself: the plate's fixed height
+   exceeded grid row 1 and painted over the garment name, the score and the
+   AVOID chip - you could read fragments of the copy through the photograph.
+   On a phone the plate alone sticks, and the readout scrolls beneath it. The
+   picture stays in view for the whole travel, nothing overlaps, and the copy
+   is reachable in normal document order. */
 @media (max-width: 860px) {
   .scrub-pin {
-    top: 96px;
-    height: calc(100vh - 96px);
+    position: static;
+    height: auto;
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     gap: 1rem;
     padding: 2vh 0;
+  }
+
+  /* The stage's travel is set inline from the frame count, which is right for a
+     pinned desktop scrub and absurd on a phone - it left roughly four empty
+     screens below the content. */
+  .scrub-stage {
+    height: 200vh !important;
   }
 }
 
@@ -684,8 +699,12 @@ img {
   padding: clamp(0.4rem, 1vw, 0.8rem);
   /* The frame hugs the photograph. A fixed-width plate letterboxes a 3:4
      portrait and gives back the size we just gained. */
-  height: 94vh;
-  max-height: 960px;
+  /* Fill the pin rather than claiming a share of the viewport. 94vh asked for
+     696px inside a 606px container on a 13" laptop with a bookmarks bar, so the
+     hem, the caption and the whole 3D panel sat below the fold - while the copy
+     narrated the hem. */
+  height: 100%;
+  max-height: min(960px, calc(96vh - 104px));
   aspect-ratio: 3 / 4;
   width: auto;
   max-width: 100%;
@@ -698,8 +717,16 @@ img {
 }
 
 @media (max-width: 860px) {
+  /* Static, not sticky. Sticky shifts the plate DOWN from its flow position
+     while its grid row stays put, so the score bar and the garment name were
+     painting straight through the photograph. A phone gets a plain stacked
+     view; the stage is short enough that the picture is still on screen while
+     the first colours change. */
   .scrub-plate {
-    height: min(54vh, 440px);
+    position: relative;
+    height: min(46vh, 380px);
+    max-height: none;
+    width: 100%;
     margin-right: auto;
   }
 }
@@ -711,7 +738,9 @@ img {
   inset: clamp(0.4rem, 1vw, 0.8rem);
   width: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
   height: calc(100% - 2 * clamp(0.4rem, 1vw, 0.8rem));
-  object-fit: cover;
+  /* `contain`, not `cover`: the plate is 3:4 and the renders are not, so cover
+     was cropping the garment the page is describing. The mount is white. */
+  object-fit: contain;
   opacity: 0;
   transition: opacity 120ms linear;
 }
@@ -759,6 +788,9 @@ img {
 .scrub-ticks span {
   flex: 1;
   height: 30px;
+  /* Near-white swatches (ivory, cream) have no edge of their own, so the strip
+     appeared to have holes punched in it where the palest colours sat. */
+  box-shadow: inset 0 0 0 1px var(--hairline);
   opacity: 0.25;
   transition: opacity 220ms var(--ease);
 }
@@ -1151,14 +1183,91 @@ button:disabled {
 }
 
 /* The turntable: a garment reconstructed as a solid object. */
+/* The turntable now lives INSIDE the plate, filling the same frame as the
+   photograph rather than stacking below it. */
 .turntable {
-  margin-top: 1.5rem;
-  border-top: 1px solid var(--hairline);
-  padding-top: 1rem;
+  position: absolute;
+  inset: clamp(0.4rem, 1vw, 0.8rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--mount);
 }
 
 .turntable model-viewer {
   --poster-color: transparent;
-  border: 1px solid var(--hairline);
+  flex: 1;
+  min-height: 0;
   background: var(--mount);
+}
+
+/* Above the model, not below it - the view toggle owns the bottom-left corner
+   of the plate and was printing straight through this line. */
+.turntable-cap {
+  font-family: var(--font-data);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  text-align: center;
+  margin: 0.5rem 0 0;
+  order: -1;
+}
+
+/* Two ways of looking at one garment, offered in the corner of the frame it
+   shares. Sits above the model-viewer's own canvas. */
+.plate-toggle {
+  position: absolute;
+  z-index: 2;
+  left: clamp(0.4rem, 1vw, 0.8rem);
+  bottom: clamp(0.4rem, 1vw, 0.8rem);
+  display: flex;
+  border: 1px solid var(--ink);
+  background: var(--wall);
+}
+
+.plate-toggle button {
+  font-family: var(--font-data);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+}
+
+.plate-toggle button.on {
+  background: var(--ink);
+  color: var(--wall);
+}
+
+.plate-toggle button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------------------- */
+/* Keyboard reachability for the file-upload buttons                 */
+/* ---------------------------------------------------------------- */
+
+/* Clipped rather than `hidden`: `hidden` removes the input from the tab order,
+   which made every upload control unreachable without a mouse. */
+.sr-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The input is invisible, so the focus ring has to be drawn on the label. */
+.filebtn:focus-within {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
 }

@@ -77,6 +77,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [budget, setBudget] = useState<{
     units?: number;
+    tryOnsAffordable?: number;
     liveGenerationAvailable?: boolean;
     unreachable?: boolean;
   } | null>(null);
@@ -159,8 +160,12 @@ export default function Page() {
           ) : budget ? (
             <>
               <i className={budget.liveGenerationAvailable ? "" : "off"} />
-              {budget.units?.toFixed(0)} units ·{" "}
-              {budget.liveGenerationAvailable ? "live" : "paused"}
+              {/* "593 units" is a dashboard readout, not something a shopper can
+                  act on. The same number said as try-ons is the part that
+                  actually means anything to whoever is standing here. */}
+              {budget.liveGenerationAvailable
+                ? `${budget.tryOnsAffordable ?? 0} live try-ons left`
+                : "live generation paused"}
             </>
           ) : (
             <>
@@ -494,10 +499,14 @@ function FileButton({
       }}
     >
       {label}
+      {/* Visually hidden, NOT `hidden`. `hidden` takes the input out of the tab
+          order, which made the primary call-to-action unreachable by keyboard
+          and invisible to a screen reader. Clipping it keeps it focusable, and
+          `.filebtn:focus-within` draws the ring on the label. */}
       <input
         type="file"
         accept="image/jpeg,image/png"
-        hidden
+        className="sr-file"
         disabled={disabled}
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -528,7 +537,12 @@ function ColourCard({ scan, portrait }: { scan: ScanResult; portrait?: string })
 
       {warnings.map((w) => (
         <div className="notice" key={w.field}>
-          <strong>{w.needsConfirmation ? "Please confirm" : "Worth knowing"}</strong>
+          {/* "Please confirm" promised a control that does not exist - there is
+              no swatch picker on this page, so it read as a dead instruction.
+              The honest label says what the reading IS, which is the thing the
+              reader needs anyway on a page whose claim is "measured, not
+              guessed". */}
+          <strong>{w.needsConfirmation ? "Estimated, not measured" : "Worth knowing"}</strong>
           {w.message}
         </div>
       ))}
@@ -706,49 +720,115 @@ interface RailItem extends CatalogueItem {
 
 
 
+/** sRGB hex to the linear-space triple glTF baseColorFactor expects. */
+function srgbToLinear(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const ch = (v: number) => {
+    const s = v / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return [ch((n >> 16) & 255), ch((n >> 8) & 255), ch(n & 255)];
+}
+
 /**
  * The turntable.
  *
  * The garment as a solid object you can turn, reconstructed from the flat
- * product photograph. Shown only where a mesh exists; its absence is silent,
- * because it enriches the room rather than carrying it.
+ * product photograph by an image-to-3D model.
+ *
+ * ONE mesh serves every colour, tinted at runtime from the same hex the swatch
+ * uses. That is not a size optimisation, it is a correctness one: the earlier
+ * version shipped a separate reconstruction per colour, and because the
+ * reconstruction bakes the product photograph's own shading into its albedo,
+ * the mesh sat a mean ΔE76 of 12.2 away from the swatch beside it - a
+ * colour-analysis app disagreeing with itself about the colour. Driving both
+ * from one hex makes them structurally unable to diverge, and measured the
+ * error down to about 3. It also means all fourteen rail colours work, where
+ * five meshes existed and nine 404ed.
+ *
+ * The camera is aimed explicitly. The garment faces +X and model-viewer's
+ * default orbit sits on +Z, so the default view was the shirt edge-on - a
+ * 30%-wide sliver filling a fifth of the frame. 90deg puts the camera in front
+ * of it: 59% fill, and the first frame already reads as a garment, which is why
+ * there is no auto-rotate to wait through.
  */
-function Turntable({ slug, title }: { slug: string; title: string }) {
+const MESH_SRC = "/models3d/shirt.glb";
+
+function Turntable({ hex, title }: { hex: string; title: string }) {
+  const ref = useRef<HTMLElement & { model?: { materials: unknown[] } }>(null);
   const [ok, setOk] = useState(false);
-  const src = `/models3d/${slug}.glb`;
 
   useEffect(() => {
     let alive = true;
     // HEAD first: a missing mesh must not render an empty box.
-    fetch(src, { method: "HEAD" })
+    fetch(MESH_SRC, { method: "HEAD" })
       .then((r) => alive && setOk(r.ok))
       .catch(() => alive && setOk(false));
     return () => {
       alive = false;
     };
-  }, [src]);
+  }, []);
 
-  if (!ok) return null;
+  useEffect(() => {
+    const mv = ref.current;
+    if (!mv || !ok) return;
+
+    const paint = () => {
+      // `model` is undefined until the load event; both entry points are needed
+      // because the colour also changes while the mesh is already loaded.
+      const mat = (mv.model?.materials?.[0] ?? null) as {
+        pbrMetallicRoughness: {
+          baseColorTexture: { setTexture: (t: null) => void };
+          setBaseColorFactor: (c: number[]) => void;
+          setMetallicFactor: (v: number) => void;
+          setRoughnessFactor: (v: number) => void;
+        };
+      } | null;
+      if (!mat) return;
+      const pbr = mat.pbrMetallicRoughness;
+      pbr.baseColorTexture?.setTexture(null); // drop the baked-in photograph
+      pbr.setBaseColorFactor([...srgbToLinear(hex), 1]);
+      pbr.setMetallicFactor(0);
+      pbr.setRoughnessFactor(0.9); // matte cotton, not satin
+    };
+
+    paint();
+    mv.addEventListener("load", paint);
+    return () => mv.removeEventListener("load", paint);
+  }, [hex, ok]);
+
+  if (!ok) {
+    return (
+      <div className="turntable">
+        <p className="eyebrow" style={{ margin: 0 }}>
+          The 3D reconstruction couldn&apos;t be loaded. The photograph above is unaffected.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="turntable">
-      <p className="eyebrow" style={{ margin: "0 0 0.6rem" }}>
-        Turn it — reconstructed in 3D
-      </p>
       {/* @ts-expect-error - web component, not a React element */}
       <model-viewer
-        src={src}
+        ref={ref}
+        src={MESH_SRC}
         alt={`A rotatable three-dimensional model of the ${title} garment`}
         camera-controls
-        auto-rotate
         loading="eager"
         reveal="auto"
-        rotation-per-second="18deg"
+        camera-orbit="90deg 78deg 90%"
+        min-camera-orbit="auto 60deg auto"
+        max-camera-orbit="auto 95deg auto"
+        interaction-prompt="auto"
         shadow-intensity="0.6"
-        exposure="1.05"
+        tone-mapping="neutral"
+        exposure="0.85"
         environment-image="neutral"
-        style={{ width: "100%", height: "300px", background: "transparent" }}
+        touch-action="pan-y"
+        style={{ width: "100%", height: "100%", background: "transparent" }}
       />
+      <p className="turntable-cap">Drag to turn · reconstructed from the flat product photograph</p>
     </div>
   );
 }
@@ -831,7 +911,7 @@ function Described({
 /**
  * THE DRAPING SCRUB.
  *
- * The sitter stays pinned; scrolling walks the garment up her own ranking,
+ * The sitter stays pinned; scrolling walks the garment up their own ranking,
  * worst colour to best. Every frame is a real YouCam try-on render generated
  * ahead of time, so the whole interaction costs no units at view time and
  * cannot fail while someone is looking at it.
@@ -854,6 +934,8 @@ function DrapingScrub({
   const stageRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(0);
+  /** Which view of the garment the plate is showing: worn, or as a solid. */
+  const [solid, setSolid] = useState(false);
 
   // Preload every frame before the stage can be scrolled through. Decoding is
   // the expensive part of a scroll sequence, and doing it mid-scroll stutters.
@@ -881,7 +963,7 @@ function DrapingScrub({
         const raw = Math.min(1, Math.max(0, -el.getBoundingClientRect().top / travel));
         // Reach the final frame at 90% of travel, not at exactly 100%. A linear
         // mapping makes the best colour exist only at p === 1, which sub-pixel
-        // rounding and elastic scrolling never quite deliver - so her best
+        // rounding and elastic scrolling never quite deliver - so their best
         // colour was unreachable. Landing early also lets it hold while you
         // scroll out, which is the note the section should end on.
         const p = Math.min(1, raw / 0.9);
@@ -916,16 +998,34 @@ function DrapingScrub({
       style={{ height: `${Math.min(100 + frames.length * 34, 580)}vh` }}
     >
       <div className="scrub-pin">
+        {/* The plate holds BOTH views of the garment - worn, and as an object.
+            Stacked below the picture the turntable was 344px in a 621px column,
+            which put it permanently below the fold on a 13" laptop; sharing the
+            frame costs no vertical space and makes the better argument anyway,
+            because the two views are of the same thing. */}
         <div className="scrub-plate">
           {frames.map((f, i) => (
             <img
               key={f.slug}
               src={f.src}
               alt={i === index ? `The sitter wearing ${f.title}` : ""}
-              className={i === index ? "on" : ""}
-              aria-hidden={i !== index}
+              className={i === index && !solid ? "on" : ""}
+              aria-hidden={i !== index || solid}
             />
           ))}
+          {solid && <Turntable hex={current.hex} title={current.title} />}
+          <div className="plate-toggle" role="group" aria-label="How to view this garment">
+            <button
+              onClick={() => setSolid(false)}
+              aria-pressed={!solid}
+              className={!solid ? "on" : ""}
+            >
+              Worn
+            </button>
+            <button onClick={() => setSolid(true)} aria-pressed={solid} className={solid ? "on" : ""}>
+              Turn it
+            </button>
+          </div>
         </div>
 
         <div>
@@ -992,7 +1092,7 @@ function DrapingScrub({
 
           <p className="scrub-hint">
             <b>↓</b>
-            {index < frames.length - 1 ? "Keep scrolling — it gets better" : "Her best colour"}
+            {index < frames.length - 1 ? "Keep scrolling — it gets better" : "Their best colour"}
           </p>
 
           {/* The same garment, in words. Present on the main surface rather
@@ -1004,8 +1104,6 @@ function DrapingScrub({
             originalSrc={bodyPhoto ?? undefined}
             renderSrc={current.src}
           />
-
-          <Turntable slug={current.slug} title={current.title} />
         </div>
       </div>
     </div>
@@ -1057,7 +1155,7 @@ function TheRail({
       .sort((a, b) => b.score.score - a.score.score);
   }, [rail, scan.profile]);
 
-  /** Worst colour first, so scrolling climbs towards her best. */
+  /** Worst colour first, so scrolling climbs towards their best. */
   const scrubFrames = useMemo(() => {
     if (!rail || !scrubSlugs?.length || !sitterId) return [];
     const bySlug = new Map(rail.map((r) => [r.thumb.split("/").pop()!.replace(".jpg", ""), r]));
@@ -1121,7 +1219,7 @@ function TheRail({
       <p className="lede" style={{ marginBottom: "2rem" }}>
         This is draping itself: the same garment, over and over, in colours chosen to span warm to
         cool and light to deep. Only the colour changes — so the ranking is entirely about you.
-        {scrubFrames.length >= 3 && " Scroll, and watch it change on her."}
+        {scrubFrames.length >= 3 && " Scroll, and watch it change on them."}
       </p>
 
       {err && (
@@ -1143,7 +1241,7 @@ function TheRail({
               <figure key={f.slug}>
                 <img src={f.src} alt={`The sitter wearing ${f.title}`} />
                 <figcaption>
-                  <span className="meta">{i === 0 ? "Her best" : "Her worst"}</span>
+                  <span className="meta">{i === 0 ? "Their best" : "Their worst"}</span>
                   <span className="verdict-line">
                     <strong>{f.title}</strong>
                     <span>{f.score.score.toFixed(1)}</span>
@@ -1157,7 +1255,7 @@ function TheRail({
           </div>
           <p className="lede" style={{ marginTop: "1.5rem" }}>
             Same body, same light, same photograph — {scrubFrames.length} colours apart. Everything
-            deciding which is which was measured from her face, not chosen by eye.
+            deciding which is which was measured from their face, not chosen by eye.
           </p>
         </>
       ) : (

@@ -115,9 +115,14 @@ export const SEASONS: Season[] = [
   },
   {
     name: "Dark Autumn", temp: 0.6, value: 0.85, clarity: 0.4,
-    blurb: "Warm and deep — colours with weight.",
-    best: ["#582F0E", "#7F4F24", "#414833", "#6A040F", "#936639", "#333D29", "#8B4513", "#5C4033"],
-    avoid: ["#FFE5B4", "#E0FBFC", "#CBF3F0", "#FDFCDC"],
+    blurb: "Warm and deep — spice, jewel and one warm light.",
+    // Every colour here used to sit between L* 21 and 47: eight browns and
+    // olives, no light anchor at all. A deep-skinned wearer was being handed
+    // nothing that could contrast against their own skin, which is the opposite
+    // of what a deep-and-warm palette is for. Teal, aubergine, marigold and a
+    // warm cream restore the range its sibling seasons already had.
+    best: ["#0F4C5C", "#6A040F", "#B5551D", "#C68B0F", "#4A2545", "#35682D", "#F2E3C6", "#7F4F24"],
+    avoid: ["#FFB3C6", "#E0FBFC", "#CBF3F0", "#D8BFD8"],
   },
   {
     name: "Bright Winter", temp: -0.4, value: 0.6, clarity: 1.0,
@@ -133,8 +138,11 @@ export const SEASONS: Season[] = [
   },
   {
     name: "Dark Winter", temp: -0.5, value: 0.95, clarity: 0.75,
-    blurb: "Cool and deep — jewel tones and true darks.",
-    best: ["#10002B", "#240046", "#3C096C", "#6A040F", "#023047", "#001219", "#005F73", "#0B3954"],
+    blurb: "Cool and deep — jewel tones against an icy light.",
+    // Same defect as Dark Autumn: the old set topped out at L* 37, so it was
+    // eight near-blacks. Deep seasons are defined by CONTRAST, and a palette
+    // with no light in it cannot produce any.
+    best: ["#10002B", "#3C096C", "#6A040F", "#023047", "#005F73", "#007F5F", "#E8EEF2", "#9D0208"],
     avoid: ["#FFE5B4", "#FFD9A0", "#F7C59F", "#FDFCDC"],
   },
 ];
